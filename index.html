@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AzChess — Onlayn Şahmat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="green">
+
+<div class="bg-glow"></div>
+
+<div class="app">
+  <!-- ======= HEADER ======= -->
+  <header class="topbar glass">
+    <div class="logo">♞ <span>AzChess</span></div>
+    <nav class="modes">
+      <button id="btnOnline" class="chip" data-i18n="modeOnline">Onlayn Oyna</button>
+      <button id="btnPvp" class="chip" data-i18n="modePvp">Pass &amp; Play</button>
+      <button id="btnAi" class="chip" data-i18n="modeAi">Kompüterə Qarşı</button>
+    </nav>
+    <div class="top-actions">
+      <button id="soundToggle" class="icon-btn" title="Səs">🔊</button>
+      <button id="btnSettings" class="icon-btn" title="Parametrlər">⚙️</button>
+      <select id="langSelect" class="lang-select" aria-label="Dil">
+        <option value="az">AZ</option>
+        <option value="en">EN</option>
+        <option value="ru">RU</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- ======= ƏSAS HİSSƏ ======= -->
+  <main class="layout">
+    <section class="board-area">
+      <div class="eval-wrap glass">
+        <div class="eval-bar"><div id="evalFill" class="eval-fill"></div></div>
+        <div id="evalScore" class="eval-score">0.0</div>
+      </div>
+      <div class="board-frame glass">
+        <div id="board" class="board"></div>
+        <svg id="arrowSvg" class="arrow-svg" viewBox="0 0 800 800" aria-hidden="true"></svg>
+      </div>
+    </section>
+
+    <aside class="panel glass">
+      <div id="status" class="status">Ağ gedişdə</div>
+      <div class="cap-row" id="capTop"></div>
+      <div id="moveList" class="move-list"></div>
+      <div class="cap-row" id="capBottom"></div>
+      <div class="nav-row">
+        <button id="navFirst" class="nav-btn" title="Əvvələ">⏮</button>
+        <button id="navPrev" class="nav-btn" title="Geri">◀</button>
+        <button id="navNext" class="nav-btn" title="İrəli">▶</button>
+        <button id="navLast" class="nav-btn" title="Sonuna">⏭</button>
+      </div>
+      <div class="actions">
+        <button id="btnFlip" class="btn ghost" data-i18n="flipBoard">Lövhəni çevir</button>
+        <button id="btnNew" class="btn primary" data-i18n="newGame">Yeni oyun</button>
+        <button id="btnResign" class="btn danger" data-i18n="resign">Təslim ol</button>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<!-- ======= MENYU MODALI ======= -->
+<div id="menuModal" class="modal">
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-card glass strong">
+    <button class="modal-close" data-close aria-label="Bağla">✕</button>
+    <h1 class="brand">♞ AzChess</h1>
+    <p class="muted" data-i18n="tagline">Müasir onlayn şahmat təcrübəsi</p>
+    <div class="menu-grid">
+      <button class="menu-btn" id="menuOnline"><span class="mb-ico">🌐</span><span data-i18n="modeOnline">Onlayn Oyna</span></button>
+      <button class="menu-btn" id="menuPvp"><span class="mb-ico">👥</span><span data-i18n="modePvp">Pass &amp; Play</span></button>
+      <button class="menu-btn" id="menuAi"><span class="mb-ico">🤖</span><span data-i18n="modeAi">Kompüterə Qarşı</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= ONLAYN MODALI ======= -->
+<div id="onlineModal" class="modal">
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-card glass">
+    <button class="modal-close" data-close aria-label="Bağla">✕</button>
+    <h2 data-i18n="modeOnline">Onlayn Oyna</h2>
+    <div id="onlineHome">
+      <button id="btnCreateRoom" class="btn primary wide" data-i18n="createRoom">Otaq yarat</button>
+      <div class="divider"><span data-i18n="or">və ya</span></div>
+      <div class="join-row">
+        <input id="joinCode" class="input" maxlength="6" inputmode="numeric" placeholder="000000" data-i18n-ph="codePlaceholder">
+        <button id="btnJoinRoom" class="btn primary" data-i18n="join">Qoşul</button>
+      </div>
+    </div>
+    <div id="onlineWait" hidden>
+      <p class="muted" data-i18n="shareCode">6 rəqəmli kodu rəqibinlə paylaş:</p>
+      <div id="roomCode" class="room-code">———</div>
+      <input id="inviteLink" class="input" readonly>
+      <button id="btnCopyLink" class="btn ghost wide" data-i18n="copyLink">Dəvət linkini kopyala</button>
+      <p id="onlineStatus" class="status-sm"></p>
+      <button id="btnCancelOnline" class="btn danger wide" data-i18n="cancel">Ləğv et</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= PROMOTION MODALI ======= -->
+<div id="promoModal" class="modal">
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-card glass small">
+    <button class="modal-close" data-close aria-label="Bağla">✕</button>
+    <h2 data-i18n="choosePromotion">Piyadanı fiqura çevirin</h2>
+    <div class="promo-row" id="promoRow"></div>
+  </div>
+</div>
+
+<!-- ======= OYUN SONU MODALI ======= -->
+<div id="overModal" class="modal">
+  <div class="modal-backdrop"></div>
+  <div class="modal-card glass small">
+    <h2 id="overTitle" class="over-title">Mat!</h2>
+    <div class="actions col">
+      <button id="btnOverNew" class="btn primary wide" data-i18n="newGame">Yeni oyun</button>
+      <button id="btnOverMenu" class="btn ghost wide" data-i18n="menu">Menyu</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======= PARAMETRLƏR MODALI ======= -->
+<div id="settingsModal" class="modal">
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-card glass">
+    <button class="modal-close" data-close aria-label="Bağla">✕</button>
+    <h2 data-i18n="settings">Parametrlər</h2>
+    <label class="field"><span data-i18n="theme">Lövhə mövzusu</span>
+      <select id="themeSelect" class="input">
+        <option value="classic" data-i18n="classic">Klassik Qəhvəyi</option>
+        <option value="blue" data-i18n="blue">Mavi</option>
+        <option value="green" data-i18n="green">Chess.com Yaşıl</option>
+        <option value="purple" data-i18n="purple">Bənövşəyi</option>
+        <option value="neon" data-i18n="neon">Neon</option>
+      </select>
+    </label>
+    <label class="field"><span data-i18n="difficulty">Səviyyə</span>
+      <select id="difficultySelect" class="input">
+        <option value="1" data-i18n="level1">Asan</option>
+        <option value="2" data-i18n="level2">Orta</option>
+        <option value="3" data-i18n="level3">Çətin</option>
+        <option value="4" data-i18n="level4">Qrosmeyster</option>
+      </select>
+    </label>
+    <label class="field"><span data-i18n="language">Dil</span>
+      <select id="langSelect2" class="input">
+        <option value="az">Azərbaycanca</option>
+        <option value="en">English</option>
+        <option value="ru">Русский</option>
+      </select>
+    </label>
+    <label class="field check"><span data-i18n="sound">Səs effektləri</span>
+      <input type="checkbox" id="soundCheck" checked>
+    </label>
+  </div>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="game.js"></script>
+<script src="ai.js"></script>
+<script src="network.js"></script>
+</body>
+</html>
