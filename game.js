@@ -10,7 +10,7 @@ AZ.Engine = (function () {
   const FILES = 'abcdefgh';
   const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
-  let board, turn, castling, ep, halfmove, fullmove, undoStack;
+  let board = new Array(64).fill(null), turn = 'w', castling = {K:true, Q:true, k:true, q:true}, ep = -1, halfmove = 0, fullmove = 1, undoStack = [];
 
   const fileOf  = s => s & 7;
   const rankOf  = s => s >> 3;
