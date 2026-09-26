@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>AzChess - 3D Neon Chess</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
+</head>
+<body data-theme="neon">
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon">♟</div>
+      <div class="brand-title">Az<span>Chess</span></div>
+    </div>
+
+    <div class="header-actions">
+      <button id="btn-mode-ai" class="btn-mode active" data-i18n="vsAI">🤖 AI ilə</button>
+      <button id="btn-mode-local" class="btn-mode" data-i18n="passPlay">👥 Yan-yana</button>
+      <button id="btn-mode-online" class="btn-mode" data-i18n="playOnline">🌐 Onlayn</button>
+
+      <div class="lang-selector">
+        <select id="sel-lang">
+          <option value="az">AZ</option>
+          <option value="en">EN</option>
+          <option value="ru">RU</option>
+        </select>
+      </div>
+
+      <button id="btn-open-settings" class="icon-btn" title="Tənzimləmələr">⚙️</button>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <aside class="panel left-panel">
+      <div class="player-card top-player" id="card-top">
+        <div class="player-avatar" id="avatar-top">👤</div>
+        <div class="player-details">
+          <div class="player-name" id="name-top">Rəqib</div>
+          <div class="captured-box" id="captured-top"></div>
+        </div>
+        <div class="timer" id="timer-top">10:00</div>
+      </div>
+
+      <div class="eval-wrapper">
+        <div class="eval-bar-container">
+          <div class="eval-bar-fill" id="eval-fill" style="height: 50%;"></div>
+        </div>
+        <div class="eval-label" id="eval-text">+0.0</div>
+      </div>
+
+      <div class="player-card bottom-player" id="card-bottom">
+        <div class="player-avatar" id="avatar-bottom">👤</div>
+        <div class="player-details">
+          <div class="player-name" id="name-bottom">Siz</div>
+          <div class="captured-box" id="captured-bottom"></div>
+        </div>
+        <div class="timer" id="timer-bottom">10:00</div>
+      </div>
+    </aside>
+
+    <section class="board-area">
+      <div class="board-container" id="board-container">
+        <div class="chess-board" id="board"></div>
+        <svg class="arrows-overlay" id="arrows-overlay"></svg>
+      </div>
+    </section>
+
+    <aside class="panel right-panel">
+      <div class="panel-header">
+        <h3 data-i18n="moves">Gedişlər</h3>
+        <button id="btn-flip" class="icon-btn" title="Lövhəni çevir">🔄</button>
+      </div>
+
+      <div class="moves-history" id="moves-history">
+        <table class="moves-table">
+          <thead>
+            <tr><th>#</th><th>Ağ</th><th>Qara</th></tr>
+          </thead>
+          <tbody id="moves-list"></tbody>
+        </table>
+      </div>
+
+      <div class="nav-controls">
+        <button id="btn-first" class="btn-nav">«</button>
+        <button id="btn-prev" class="btn-nav">‹</button>
+        <button id="btn-next" class="btn-nav">›</button>
+        <button id="btn-last" class="btn-nav">»</button>
+      </div>
+
+      <div class="action-buttons">
+        <button id="btn-draw" class="btn-action" data-i18n="draw">Heç-heçə</button>
+        <button id="btn-resign" class="btn-action danger" data-i18n="resign">Tərk et</button>
+        <button id="btn-copy-pgn" class="btn-action" data-i18n="copyPGN">PGN Kopyala</button>
+      </div>
+    </aside>
+  </main>
+
+  <div class="modal-overlay" id="modal-settings">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 data-i18n="settings">Tənzimləmələr</h3>
+        <button class="modal-close">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="setting-group">
+          <label data-i18n="boardTheme">Lövhə Mövzusu</label>
+          <select id="set-board-theme">
+            <option value="neon">3D Neon</option>
+            <option value="brown">Klassik Taxta</option>
+            <option value="blue">Okean Mavi</option>
+            <option value="green">Turnir Yaşıl</option>
+            <option value="purple">Bənövşəyi Qlass</option>
+            <option value="custom">Xüsusi Rənglər</option>
+          </select>
+        </div>
+
+        <div class="setting-group custom-colors-group hidden" id="custom-colors-box">
+          <label>Xana Rəngləri (Açıq / Tünd)</label>
+          <div class="color-inputs">
+            <input type="color" id="color-light" value="#f0d9b5">
+            <input type="color" id="color-dark" value="#b58863">
+          </div>
+        </div>
+
+        <div class="setting-group">
+          <label data-i18n="pieceSet">Fiqur Dəsti</label>
+          <select id="set-piece-style">
+            <option value="cburnett">CBurnett (Lichess)</option>
+            <option value="merida">Merida</option>
+            <option value="alpha">Alpha</option>
+            <option value="unicode">Klassik Simvollar (Offline)</option>
+          </select>
+        </div>
+
+        <div class="setting-group">
+          <label data-i18n="difficulty">AI Səviyyəsi</label>
+          <select id="set-ai-level">
+            <option value="1">Asan (Səviyyə 1)</option>
+            <option value="2" selected>Orta (Səviyyə 2)</option>
+            <option value="3">Çətin (Səviyyə 3)</option>
+            <option value="4">Qrosmeyster (Səviyyə 4)</option>
+          </select>
+        </div>
+
+        <div class="setting-group">
+          <label data-i18n="timeControl">Vaxt Kontrolu</label>
+          <select id="set-time-control">
+            <option value="1+0">1 dəq (Bullet)</option>
+            <option value="3+2">3 dəq + 2 san (Blitz)</option>
+            <option value="5+3" selected>5 dəq + 3 san (Blitz)</option>
+            <option value="10+0">10 dəq (Rapid)</option>
+            <option value="15+10">15 dəq + 10 san (Rapid)</option>
+          </select>
+        </div>
+
+        <div class="setting-group toggle-group">
+          <label data-i18n="sound">Səs Effektləri</label>
+          <input type="checkbox" id="set-sound" checked>
+        </div>
+
+        <div class="setting-group toggle-group">
+          <label data-i18n="autoFlip">Avto Çevirmə (Yan-yana)</label>
+          <input type="checkbox" id="set-autoflip">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-online">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 data-i18n="playOnline">Onlayn Oyun</h3>
+        <button class="modal-close">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="online-box">
+          <button id="btn-create-room" class="btn-primary full-width" data-i18n="createRoom">Yeni Otaq Yarat</button>
+          
+          <div class="divider"><span>və ya</span></div>
+
+          <div class="join-box">
+            <input type="text" id="input-room-code" placeholder="6 rəqəmli kod..." maxlength="6">
+            <button id="btn-join-room" class="btn-secondary" data-i18n="joinRoom">Qoşul</button>
+          </div>
+
+          <div id="room-status" class="room-status hidden">
+            <p data-i18n="waiting">Rəqib gözlənilir...</p>
+            <div class="code-display" id="display-room-code">------</div>
+            <button id="btn-copy-link" class="btn-action" data-i18n="inviteLink">Dəvət Linkini Kopyala</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-promo">
+    <div class="modal-card compact">
+      <h3 data-i18n="promotion">Fiqur Seçin</h3>
+      <div class="promo-choices" id="promo-choices">
+        <button data-piece="q">♛</button>
+        <button data-piece="r">♜</button>
+        <button data-piece="b">♝</button>
+        <button data-piece="n">♞</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-gameover">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="gameover-title">Oyun Biti</h3>
+      </div>
+      <div class="modal-body text-center">
+        <p id="gameover-reason" class="highlight-text"></p>
+        <div class="modal-actions">
+          <button id="btn-rematch" class="btn-primary" data-i18n="rematch">Yenidən Oyna</button>
+          <button id="btn-new-game" class="btn-secondary" data-i18n="newGame">Yeni Oyun</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js" defer></script>
+  <script src="ai.js" defer></script>
+  <script src="network.js" defer></script>
+</body>
+</html>
