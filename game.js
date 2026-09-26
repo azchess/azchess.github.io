@@ -973,8 +973,11 @@ AZ.Game = (function () {
     G.pending = null;
     G.thinking = false;
     G.rematchSent = false; G.rematchReceived = false;
-    if (mode === 'ai') { G.myColor = 'w'; G.orientation = 'w'; }
-    if (mode === 'pvp') { G.myColor = null; G.orientation = 'w'; }
+    
+    // Həmişə ağlar aşağıda (w) başlasın
+    G.myColor = 'w'; 
+    G.orientation = 'w';
+
     closeAllModals();
     if (els.btnResign) els.btnResign.style.display = mode === 'pvp' ? 'none' : '';
     renderAll();
