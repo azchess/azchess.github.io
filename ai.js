@@ -67,109 +67,101 @@
       -30,-40,-40,-50,-50,-40,-40,-30,
       -30,-40,-40,-50,-50,-40,-40,-30,
       -20,-30,-30,-40,-40,-30,-30,-20,
-      -10,-20,-20,-20,-20,-20,-20,-10,
-       20, 20,  0,  0,  0,  0, 20, 20,
-       20, 30, 10,  0,  0, 10, 30, 20
+      -10, -20,-20,-20,-20,-20,-20,-10,
+       20,  20,  0,  0,  0,  0,  20, 20,
+       20,  30, 10,  0,  0, 10,  30, 20
     ]
   };
 
-  // Ağ perspektivindən sentipiyada qiymətləndirmə
   function rawEval() {
     const b = E().board();
-    let s = 0;
+    let score = 0;
     for (let i = 0; i < 64; i++) {
       const p = b[i];
       if (!p) continue;
       const U = p.toUpperCase();
-      const c = AZ.Engine.colorOf(p);
-      const v = VAL[U] + PST[U][c === 'w' ? i : i ^ 56];
-      s += c === 'w' ? v : -v;
+      const val = VAL[U];
+      const isWhite = p === U;
+      const pstIdx = isWhite ? i : 63 - i;
+      const pstVal = PST[U] ? PST[U][pstIdx] : 0;
+      const total = val + pstVal;
+      score += isWhite ? total : -total;
     }
-    return s;
+    return score;
   }
 
-  // Gedişdə olan tərəfin perspektivindən
-  function evaluate() {
-    const cp = rawEval();
-    return E().turn() === 'w' ? cp : -cp;
-  }
+  function quiescence(alpha, beta, colorFactor) {
+    const standPat = colorFactor * rawEval();
+    if (standPat >= beta) return beta;
+    if (alpha < standPat) alpha = standPat;
 
-  let nodes = 0;
-  const MAX_NODES = 250000;
-
-  function moveScore(m) {
-    if (m.captured) return 10 * VAL[m.captured.toUpperCase()] - VAL[m.piece.toUpperCase()] / 10;
-    if (m.promotion) return 8000;
-    return 0;
-  }
-  function orderMoves(moves) { moves.sort((a, b) => moveScore(b) - moveScore(a)); }
-
-  // Quiescence: yalnız vurmalar (səthin qiymətləndirməsi)
-  function quiesce(alpha, beta, qd) {
-    nodes++;
-    const stand = evaluate();
-    if (stand >= beta) return beta;
-    if (stand > alpha) alpha = stand;
-    if (qd <= 0) return alpha;
-    const caps = E().allLegalMoves().filter(m => m.captured);
-    orderMoves(caps);
-    for (const m of caps) {
+    const moves = E().allLegal().filter(m => m.captured);
+    for (const m of moves) {
       E().make(m);
-      const s = -quiesce(-beta, -alpha, qd - 1);
+      const score = -quiescence(-beta, -alpha, -colorFactor);
       E().unmake();
-      if (s >= beta) return beta;
-      if (s > alpha) alpha = s;
-      if (nodes > MAX_NODES) return alpha;
+      if (score >= beta) return beta;
+      if (score > alpha) alpha = score;
     }
     return alpha;
   }
 
-  function negamax(depth, alpha, beta, ply) {
-    nodes++;
-    if (depth === 0) return quiesce(alpha, beta, 6);
-    const moves = E().allLegalMoves();
-    if (!moves.length) return E().inCheck(E().turn()) ? -100000 + ply : 0;
-    orderMoves(moves);
-    let best = -Infinity;
+  function minimax(depth, alpha, beta, colorFactor) {
+    if (depth === 0) return quiescence(alpha, beta, colorFactor);
+    const moves = E().allLegal();
+    if (!moves.length) {
+      if (E().inCheck(E().turn())) return -99999 + (4 - depth);
+      return 0;
+    }
     for (const m of moves) {
       E().make(m);
-      const s = -negamax(depth - 1, -beta, -alpha, ply + 1);
+      const score = -minimax(depth - 1, -beta, -alpha, -colorFactor);
       E().unmake();
-      if (s > best) best = s;
-      if (s > alpha) alpha = s;
-      if (alpha >= beta) break;
-      if (nodes > MAX_NODES) return best;
+      if (score >= beta) return beta;
+      if (score > alpha) alpha = score;
     }
-    return best;
+    return alpha;
   }
-
-  const LEVELS = {
-    1: { d: 1, jit: .4 },   // Asan — tez-tez səhv
-    2: { d: 2, jit: .08 },  // Orta
-    3: { d: 3, jit: 0 },    // Çətin
-    4: { d: 4, jit: 0 }     // Qrosmeyster
-  };
 
   function bestMove(level) {
-    const cfg = LEVELS[level] || LEVELS[2];
-    const moves = E().allLegalMoves();
+    const moves = E().allLegal();
     if (!moves.length) return null;
-    if (Math.random() < cfg.jit) return moves[Math.floor(Math.random() * moves.length)];
 
-    nodes = 0;
-    orderMoves(moves);
-    let bestScore = -Infinity;
-    const equals = [];
+    // Səviyyə 1: Asan (təsadüfi və ya zəif gedişlər)
+    if (level === 1) {
+      if (Math.random() < 0.4) {
+        return moves[Math.floor(Math.random() * moves.length)];
+      }
+    }
+
+    const depth = level === 1 ? 1 : level === 2 ? 2 : level === 3 ? 3 : 4;
+    const colorFactor = E().turn() === 'w' ? 1 : -1;
+
+    let best = null;
+    let bestVal = -999999;
+    let alpha = -1000000;
+    const beta = 1000000;
+
+    // Sadə fiqur üstünlüyü sıralaması (heuristic)
+    moves.sort((a, b) => {
+      let sa = a.captured ? VAL[a.captured.toUpperCase()] || 0 : 0;
+      let sb = b.captured ? VAL[b.captured.toUpperCase()] || 0 : 0;
+      return sb - sa;
+    });
+
     for (const m of moves) {
       E().make(m);
-      const s = -negamax(cfg.d - 1, -Infinity, Infinity, 1);
+      const val = -minimax(depth - 1, -beta, -alpha, -colorFactor);
       E().unmake();
-      if (s > bestScore) { bestScore = s; equals.length = 0; equals.push(m); }
-      else if (s === bestScore) equals.push(m);
-      if (nodes > MAX_NODES) break;
+      if (val > bestVal) {
+        bestVal = val;
+        best = m;
+      }
+      if (val > alpha) alpha = val;
     }
-    return equals[Math.floor(Math.random() * equals.length)] || moves[0];
+
+    return best || moves[0];
   }
 
-  AZ.AI = { rawEval, evaluate, bestMove };
+  AZ.AI = { bestMove, rawEval };
 })();
