@@ -16,7 +16,12 @@
   };
 
   const status = t => { const el = $('onlineStatus'); if (el) el.textContent = t; };
-  const showWait = on => { $('onlineHome').hidden = on; $('onlineWait').hidden = !on; };
+  const showWait = on => {
+    const home = $('onlineHome');
+    const wait = $('onlineWait');
+    if (home) home.hidden = on;
+    if (wait) wait.hidden = !on;
+  };
 
   function inviteURL(code) {
     return `${location.origin}${location.pathname}?room=${code}`;
@@ -60,17 +65,20 @@
 
     AZ.openModal('onlineModal');
     showWait(true);
-    $('roomCode').textContent = Net.room;
-    $('inviteLink').value = inviteURL(Net.room);
+    
+    const rc = $('roomCode'); if (rc) rc.textContent = Net.room;
+    const il = $('inviteLink'); if (il) il.value = inviteURL(Net.room);
+    
     status(AZ.t('creating'));
 
     Net.peer = new Peer(PREFIX + Net.room);
     Net.peer.on('open', () => { status(AZ.t('waiting')); Net.busy = false; });
     Net.peer.on('connection', c => {
-      if (Net.conn) { c.close(); return; } // artıq dolu
+      if (Net.conn) { c.close(); return; }
       bindConn(c);
       c.on('open', () => {
-        Net.room && $('onlineWait') && ($('onlineWait').hidden = true);
+        const waitEl = $('onlineWait');
+        if (Net.room && waitEl) waitEl.hidden = true;
         AZ.Game.startOnline('w'); // host ağla oynayır
       });
     });
@@ -92,8 +100,10 @@
 
     AZ.openModal('onlineModal');
     showWait(true);
-    $('roomCode').textContent = code;
-    $('inviteLink').value = inviteURL(code);
+    
+    const rc = $('roomCode'); if (rc) rc.textContent = code;
+    const il = $('inviteLink'); if (il) il.value = inviteURL(code);
+    
     status(AZ.t('connecting'));
 
     Net.peer = new Peer();
@@ -101,7 +111,8 @@
       const c = Net.peer.connect(PREFIX + code, { reliable: true });
       bindConn(c);
       c.on('open', () => {
-        $('onlineWait').hidden = true;
+        const waitEl = $('onlineWait');
+        if (waitEl) waitEl.hidden = true;
         AZ.Game.startOnline('b'); // qonaq qarayla oynayır
       });
     });
@@ -117,15 +128,18 @@
 
   Net.leave = function () {
     cleanup();
-    if ($('onlineWait')) { $('onlineWait').hidden = true; }
-    if ($('onlineHome')) { $('onlineHome').hidden = false; }
+    const waitEl = $('onlineWait');
+    const homeEl = $('onlineHome');
+    if (waitEl) waitEl.hidden = true;
+    if (homeEl) homeEl.hidden = false;
   };
 
   /* ---------- Dəvət linki: ?room=XXXXXX ---------- */
   window.addEventListener('load', () => {
     const m = location.search.match(/[?&]room=(\d{6})/);
-    if (m && $('joinCode')) {
-      $('joinCode').value = m[1];
+    const joinCodeInput = $('joinCode');
+    if (m && joinCodeInput) {
+      joinCodeInput.value = m[1];
       AZ.openModal('onlineModal');
       setTimeout(() => Net.join(m[1]), 600);
     }
@@ -133,19 +147,33 @@
 
   /* ---------- UI bağlantıları ---------- */
   document.addEventListener('DOMContentLoaded', () => {
-    $('btnCreateRoom').addEventListener('click', () => Net.create());
-    $('btnJoinRoom').addEventListener('click', () => Net.join($('joinCode').value));
-    $('joinCode').addEventListener('keydown', e => {
-      if (e.key === 'Enter') Net.join($('joinCode').value);
+    const bindClick = (id, fn) => { const el = $(id); if (el) el.addEventListener('click', fn); };
+
+    bindClick('btnCreateRoom', () => Net.create());
+    bindClick('btnJoinRoom', () => {
+      const jc = $('joinCode');
+      if (jc) Net.join(jc.value);
     });
-    $('btnCancelOnline').addEventListener('click', () => {
+
+    const joinCodeInput = $('joinCode');
+    if (joinCodeInput) {
+      joinCodeInput.addEventListener('keydown', e => {
+        if (e.key === 'Enter') Net.join(joinCodeInput.value);
+      });
+    }
+
+    bindClick('btnCancelOnline', () => {
       Net.leave();
       AZ.closeModal('onlineModal');
     });
-    $('btnCopyLink').addEventListener('click', () => {
-      const link = $('inviteLink').value;
+
+    bindClick('btnCopyLink', () => {
+      const il = $('inviteLink');
+      if (!il) return;
+      const link = il.value;
       const done = () => {
         const b = $('btnCopyLink');
+        if (!b) return;
         const old = b.textContent;
         b.textContent = AZ.t('copied');
         setTimeout(() => { b.textContent = old; }, 1500);
@@ -153,7 +181,7 @@
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(link).then(done).catch(done);
       } else {
-        $('inviteLink').select();
+        il.select();
         try { document.execCommand('copy'); } catch (e) { /* ignore */ }
         done();
       }
