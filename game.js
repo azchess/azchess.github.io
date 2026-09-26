@@ -63,7 +63,6 @@ AZ.Engine = (function () {
 
   function isAttacked(s, byColor) {
     const f = fileOf(s), r = rankOf(s);
-    // Piyadalar
     if (byColor === 'w') {
       if (f > 0 && r < 7 && board[s + 7] === 'P') return true;
       if (f < 7 && r < 7 && board[s + 9] === 'P') return true;
@@ -71,21 +70,18 @@ AZ.Engine = (function () {
       if (f > 0 && r > 0 && board[s - 9] === 'p') return true;
       if (f < 7 && r > 0 && board[s - 7] === 'p') return true;
     }
-    // Atlar
     const NO = [[1, 2], [2, 1], [-1, 2], [-2, 1], [1, -2], [2, -1], [-1, -2], [-2, -1]];
     const nP = byColor === 'w' ? 'N' : 'n';
     for (const [df, dr] of NO) {
       const nf = f + df, nr = r + dr;
       if (nf >= 0 && nf < 8 && nr >= 0 && nr < 8 && board[sq(nf, nr)] === nP) return true;
     }
-    // Şah
     const kP = byColor === 'w' ? 'K' : 'k';
     for (let df = -1; df <= 1; df++) for (let dr = -1; dr <= 1; dr++) {
       if (!df && !dr) continue;
       const nf = f + df, nr = r + dr;
       if (nf >= 0 && nf < 8 && nr >= 0 && nr < 8 && board[sq(nf, nr)] === kP) return true;
     }
-    // Fil / Top / Vəzir
     const diag = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
     const straight = [[1, 0], [-1, 0], [0, 1], [0, -1]];
     const scan = (dirs, pieces) => {
@@ -159,7 +155,7 @@ AZ.Engine = (function () {
           nf += df; nr += dr;
         }
       }
-    } else { // Piyada
+    } else {
       const dir = c === 'w' ? -8 : 8;
       const promoRow = c === 'w' ? 0 : 7;
       const step = c === 'w' ? -1 : 1;
@@ -430,7 +426,7 @@ AZ.Game = (function () {
   const VAL = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
 
   const G = {
-    mode: null,            // 'pvp' | 'ai' | 'online'
+    mode: null,
     myColor: 'w',
     orientation: 'w',
     level: 2,
@@ -439,16 +435,16 @@ AZ.Game = (function () {
     over: false,
     result: '',
     thinking: false,
-    plies: [],             // {move, san, color, captured, cp, check}
+    plies: [],
     viewPly: 0,
     selected: -1,
     targets: [],
     lastFrom: -1, lastTo: -1,
-    premoves: [],          // {from, to}
+    premoves: [],
     preFrom: -1,
-    arrows: [],            // {from, to}
-    marks: {},             // sq -> 'green' | 'red'
-    pending: null,         // promotion
+    arrows: [],
+    marks: {},
+    pending: null,
     rematchSent: false,
     rematchReceived: false,
     token: 0
@@ -459,14 +455,13 @@ AZ.Game = (function () {
   let arrowDrag = null;
   let ghostEl = null;
 
-  /* ---------- Modal köməkçiləri ---------- */
-  AZ.openModal = id => $(id).classList.add('open');
-  AZ.closeModal = id => $(id).classList.remove('open');
+  AZ.openModal = id => { const el = $(id); if (el) el.classList.add('open'); };
+  AZ.closeModal = id => { const el = $(id); if (el) el.classList.remove('open'); };
   function closeAllModals() { document.querySelectorAll('.modal.open').forEach(m => m.classList.remove('open')); }
 
   function onModalClosed(id) {
     if (id === 'promoModal' && G.pending) { G.pending = null; deselect(); }
-    if (id === 'onlineModal' && G.mode !== 'online') AZ.Net.leave();
+    if (id === 'onlineModal' && G.mode !== 'online' && AZ.Net) AZ.Net.leave();
   }
 
   function bindModals() {
@@ -476,15 +471,14 @@ AZ.Game = (function () {
     });
   }
 
-  /* ---------- Pozisiya replay ---------- */
   function replayPosition() {
     const e = E();
     e.reset();
     for (let i = 0; i < G.viewPly; i++) e.make(G.plies[i].move);
   }
 
-  /* ---------- Lövhə render ---------- */
   function renderBoard() {
+    if (!els.board) return;
     replayPosition();
     const e = E(), b = e.board();
     const checkSq = (G.viewPly === G.plies.length || G.viewPly > 0) && e.inCheck(e.turn())
@@ -546,7 +540,6 @@ AZ.Game = (function () {
     return -1;
   }
 
-  /* ---------- Oxlar (sağ klik) ---------- */
   function sqCenter(s) {
     const e = E();
     let f = e.fileOf(s), r = e.rankOf(s);
@@ -577,6 +570,7 @@ AZ.Game = (function () {
   }
 
   function renderArrows() {
+    if (!els.arrowSvg) return;
     els.arrowSvg.innerHTML = '';
     G.arrows.forEach(a => {
       const [x1, y1] = sqCenter(a.from), [x2, y2] = sqCenter(a.to);
@@ -588,8 +582,8 @@ AZ.Game = (function () {
     }
   }
 
-  /* ---------- Gedişlər siyahısı ---------- */
   function renderMoves() {
+    if (!els.moveList) return;
     const list = els.moveList;
     list.innerHTML = '';
     let row = null;
@@ -612,11 +606,10 @@ AZ.Game = (function () {
       (row || list).appendChild(b);
     });
     list.scrollTop = list.scrollHeight;
-    els.navFirst.disabled = els.navPrev.disabled = G.viewPly === 0;
-    els.navNext.disabled = els.navLast.disabled = G.viewPly >= G.plies.length;
+    if (els.navFirst) els.navFirst.disabled = els.navPrev.disabled = G.viewPly === 0;
+    if (els.navNext) els.navNext.disabled = els.navLast.disabled = G.viewPly >= G.plies.length;
   }
 
-  /* ---------- Vurulmuş fiqurlar ---------- */
   const glyphs = list => list
     .slice()
     .sort((a, b2) => VAL[b2.toLowerCase()] - VAL[a.toLowerCase()])
@@ -626,19 +619,20 @@ AZ.Game = (function () {
     }).join('');
 
   function renderCaptured() {
+    if (!els.capTop || !els.capBottom) return;
     const capByWhite = [], capByBlack = [];
     G.plies.forEach(p => {
       if (!p.captured) return;
       (p.color === 'w' ? capByWhite : capByBlack).push(p.captured);
     });
     const sum = l => l.reduce((s, p) => s + VAL[p.toLowerCase()], 0);
-    const diff = sum(capByWhite) - sum(capByBlack); // müsbət = ağ üstündür
+    const diff = sum(capByWhite) - sum(capByBlack);
     els.capTop.innerHTML = glyphs(capByBlack) + (diff < 0 ? `<span class="mat-diff">+${-diff}</span>` : '');
     els.capBottom.innerHTML = glyphs(capByWhite) + (diff > 0 ? `<span class="mat-diff">+${diff}</span>` : '');
   }
 
-  /* ---------- Eval bar ---------- */
   function renderEval() {
+    if (!els.evalFill || !els.evalScore) return;
     const cp = G.viewPly === 0 ? 0 : (G.plies[G.viewPly - 1].cp || 0);
     const pct = 50 + 50 * (2 / (1 + Math.exp(-cp / 380)) - 1);
     els.evalFill.style.height = Math.max(3, Math.min(97, pct)) + '%';
@@ -647,8 +641,8 @@ AZ.Game = (function () {
     els.evalScore.classList.toggle('neg', cp < 0);
   }
 
-  /* ---------- Status ---------- */
   function renderStatus() {
+    if (!els.status) return;
     if (G.over) { els.status.textContent = G.result; return; }
     if (G.rematchReceived && !G.rematchSent) { els.status.textContent = AZ.t('rematchOffer'); return; }
     if (G.rematchSent) { els.status.textContent = AZ.t('rematchSent'); return; }
@@ -657,7 +651,7 @@ AZ.Game = (function () {
     if (G.viewPly < G.plies.length) { els.status.textContent = AZ.t('viewing'); return; }
     const chk = e.inCheck(e.turn());
     els.status.textContent =
-      (e.turn() === 'w' ? AZ.t('whiteToMove') : AZ.t('blackToMove')) + (chk ? ' • ' + AZ.t('check') : '');
+      (e.turn() === 'w' ? AZ.t('whiteToMove' ) : AZ.t('blackToMove')) + (chk ? ' • ' + AZ.t('check') : '');
   }
 
   function renderAll() {
@@ -668,7 +662,6 @@ AZ.Game = (function () {
     renderStatus();
   }
 
-  /* ---------- Seçim ---------- */
   function select(s) {
     if (G.selected === s) { deselect(); return; }
     G.selected = s;
@@ -682,13 +675,12 @@ AZ.Game = (function () {
     renderBoard();
   }
 
-  /* ---------- Gediş icrası ---------- */
   function doMove(m, opts) {
     opts = opts || {};
     const e = E();
     const san = e.moveSAN(m);
     e.make(m);
-    const cp = AZ.AI ? AZ.AI.rawEval() : 0;
+    const cp = AZ.AI && AZ.AI.rawEval ? AZ.AI.rawEval() : 0;
     const oppInCheck = e.inCheck(e.turn());
     G.plies.push({ move: m, san, color: e.colorOf(m.piece), captured: m.captured || null, cp, check: oppInCheck });
     G.viewPly = G.plies.length;
@@ -713,7 +705,7 @@ AZ.Game = (function () {
       return;
     }
     if (G.mode === 'ai' && e.turn() !== G.myColor) { aiTurn(); return; }
-    if (G.mode === 'online' && !opts.remote) {
+    if (G.mode === 'online' && !opts.remote && AZ.Net) {
       AZ.Net.send({ t: 'move', from: m.from, to: m.to, promotion: m.promotion || null });
       return;
     }
@@ -734,7 +726,6 @@ AZ.Game = (function () {
     }, 90);
   }
 
-  /* ---------- Premove ---------- */
   function handlePremove(s) {
     const e = E(), b = e.board();
     const p = b[s];
@@ -760,7 +751,6 @@ AZ.Game = (function () {
     while (G.premoves.length) {
       const pre = G.premoves[0];
       const legal = e.legalFrom(pre.from).filter(x => x.to === pre.to);
-      G.premotes === undefined; // noop guard
       G.premoves.shift();
       if (!legal.length) continue;
       const m = legal[0].promotion ? legal.find(x => x.promotion === 'q') : legal[0];
@@ -770,7 +760,6 @@ AZ.Game = (function () {
     renderBoard();
   }
 
-  /* ---------- İnsan gedişi ---------- */
   function tryHumanMove(mv) {
     if (mv.promotion) {
       G.pending = { mv };
@@ -782,6 +771,7 @@ AZ.Game = (function () {
 
   function showPromo(color) {
     const row = $('promoRow');
+    if (!row) return;
     row.innerHTML = '';
     ['q', 'r', 'b', 'n'].forEach(p => {
       const b = document.createElement('button');
@@ -801,7 +791,6 @@ AZ.Game = (function () {
     AZ.openModal('promoModal');
   }
 
-  /* ---------- Oyun sonu ---------- */
   function endGame(st) {
     G.over = true;
     const e = E();
@@ -814,26 +803,26 @@ AZ.Game = (function () {
     } else if (st === 'disconnect') {
       res = AZ.t('opponentLeft');
     } else if (st === 'resign') {
-      res = AZ.t('youResignedKey' in AZ.I18N.az ? 'youResignedKey' : 'youLose');
+      res = AZ.t('youLose');
     } else {
       res = AZ.t('drawSuffix') + ' — ' + AZ.t(st);
     }
     G.result = res;
     AZ.AudioFX.play('end');
-    $('overTitle').textContent = res;
+    const ot = $('overTitle');
+    if (ot) ot.textContent = res;
     AZ.openModal('overModal');
     renderStatus();
   }
 
-  /* ---------- Naviqasiya ---------- */
   function jumpTo(ply) {
     G.viewPly = Math.max(0, Math.min(ply, G.plies.length));
     if (G.viewPly === G.plies.length) { G.selected = -1; G.targets = []; }
     renderAll();
   }
 
-  /* ---------- Pointer əməliyyatları ---------- */
   function squareAtPoint(x, y) {
+    if (!els.board) return -1;
     const r = els.board.getBoundingClientRect();
     if (x < r.left || x >= r.right || y < r.top || y >= r.bottom) return -1;
     const f = Math.floor((x - r.left) / r.width * 8);
@@ -843,6 +832,7 @@ AZ.Game = (function () {
   }
 
   function pointerToSvg(x, y) {
+    if (!els.board) return [0, 0];
     const r = els.board.getBoundingClientRect();
     return [
       Math.max(0, Math.min(800, (x - r.left) / r.width * 800)),
@@ -866,7 +856,6 @@ AZ.Game = (function () {
   }
 
   function onRightDown(s) {
-    // Sağ klik: əvvəl premove ləğv edir
     if (G.premoves.length || G.preFrom >= 0) {
       G.premoves = []; G.preFrom = -1;
       renderBoard();
@@ -903,7 +892,6 @@ AZ.Game = (function () {
     renderBoard();
   }
 
-  /* ---------- Sürüşdürmə (drag & drop) ---------- */
   function makeGhost(piece, color, x, y) {
     removeGhost();
     ghostEl = document.createElement('div');
@@ -920,6 +908,7 @@ AZ.Game = (function () {
   }
 
   function bindBoard() {
+    if (!els.board) return;
     els.board.addEventListener('contextmenu', e => e.preventDefault());
     els.board.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
 
@@ -971,7 +960,6 @@ AZ.Game = (function () {
     });
   }
 
-  /* ---------- Yeni oyun ---------- */
   function startGame(mode) {
     G.token++;
     E().reset();
@@ -988,12 +976,11 @@ AZ.Game = (function () {
     if (mode === 'ai') { G.myColor = 'w'; G.orientation = 'w'; }
     if (mode === 'pvp') { G.myColor = null; G.orientation = 'w'; }
     closeAllModals();
-    els.btnResign.style.display = mode === 'pvp' ? 'none' : '';
+    if (els.btnResign) els.btnResign.style.display = mode === 'pvp' ? 'none' : '';
     renderAll();
     AZ.AudioFX.play('start');
   }
 
-  /* ---------- Onlayn API (network.js çağırır) ---------- */
   function startOnline(color) {
     startGame('online');
     G.myColor = color;
@@ -1013,7 +1000,8 @@ AZ.Game = (function () {
       G.result = AZ.t('opponentResigned') + ' — ' + AZ.t('youWin');
       G.over = true;
       AZ.AudioFX.play('end');
-      $('overTitle').textContent = G.result;
+      const ot = $('overTitle');
+      if (ot) ot.textContent = G.result;
       AZ.openModal('overModal');
       renderStatus();
     }
@@ -1028,73 +1016,88 @@ AZ.Game = (function () {
     else { G.rematchReceived = true; renderStatus(); }
   }
 
-  /* ---------- UI bağlantıları ---------- */
   function bindUI() {
-    $('btnOnline').addEventListener('click', () => AZ.openModal('onlineModal'));
-    $('menuOnline').addEventListener('click', () => { closeAllModals(); AZ.openModal('onlineModal'); });
-    $('btnPvp').addEventListener('click', () => startGame('pvp'));
-    $('menuPvp').addEventListener('click', () => startGame('pvp'));
-    $('btnAi').addEventListener('click', () => startGame('ai'));
-    $('menuAi').addEventListener('click', () => startGame('ai'));
+    const bindClick = (id, fn) => { const el = $(id); if (el) el.addEventListener('click', fn); };
 
-    $('btnFlip').addEventListener('click', () => {
+    bindClick('btnOnline', () => AZ.openModal('onlineModal'));
+    bindClick('menuOnline', () => { closeAllModals(); AZ.openModal('onlineModal'); });
+    bindClick('btnPvp', () => startGame('pvp'));
+    bindClick('menuPvp', () => startGame('pvp'));
+    bindClick('btnAi', () => startGame('ai'));
+    bindClick('menuAi', () => startGame('ai'));
+
+    bindClick('btnFlip', () => {
       G.orientation = G.orientation === 'w' ? 'b' : 'w';
       renderBoard();
     });
 
-    $('btnNew').addEventListener('click', () => {
-      if (G.mode === 'online') {
+    bindClick('btnNew', () => {
+      if (G.mode === 'online' && AZ.Net) {
         AZ.Net.send({ t: 'rematch' });
         if (G.rematchReceived) startOnline(G.myColor);
         else { G.rematchSent = true; renderStatus(); }
       } else startGame(G.mode || 'ai');
     });
 
-    $('btnOverNew').addEventListener('click', () => $('btnNew').click());
-    $('btnOverMenu').addEventListener('click', () => { closeAllModals(); AZ.openModal('menuModal'); });
+    bindClick('btnOverNew', () => { const btn = $('btnNew'); if (btn) btn.click(); });
+    bindClick('btnOverMenu', () => { closeAllModals(); AZ.openModal('menuModal'); });
 
-    $('btnResign').addEventListener('click', () => {
+    bindClick('btnResign', () => {
       if (G.over || G.mode === 'pvp') return;
-      if (G.mode === 'online') AZ.Net.send({ t: 'resign' });
+      if (G.mode === 'online' && AZ.Net) AZ.Net.send({ t: 'resign' });
       G.over = true;
       G.result = AZ.t('youLose');
       AZ.AudioFX.play('end');
-      $('overTitle').textContent = G.result;
+      const ot = $('overTitle');
+      if (ot) ot.textContent = G.result;
       AZ.openModal('overModal');
       renderStatus();
     });
 
-    $('navFirst').addEventListener('click', () => jumpTo(0));
-    $('navPrev').addEventListener('click', () => jumpTo(G.viewPly - 1));
-    $('navNext').addEventListener('click', () => jumpTo(G.viewPly + 1));
-    $('navLast').addEventListener('click', () => jumpTo(G.plies.length));
+    bindClick('navFirst', () => jumpTo(0));
+    bindClick('navPrev', () => jumpTo(G.viewPly - 1));
+    bindClick('navNext', () => jumpTo(G.viewPly + 1));
+    bindClick('navLast', () => jumpTo(G.plies.length));
 
-    $('btnSettings').addEventListener('click', () => AZ.openModal('settingsModal'));
-    $('soundToggle').addEventListener('click', () => {
+    bindClick('btnSettings', () => AZ.openModal('settingsModal'));
+    bindClick('soundToggle', () => {
       G.sound = !G.sound;
-      $('soundCheck').checked = G.sound;
-      $('soundToggle').textContent = G.sound ? '🔊' : '🔇';
+      const sc = $('soundCheck'); if (sc) sc.checked = G.sound;
+      const st = $('soundToggle'); if (st) st.textContent = G.sound ? '🔊' : '🔇';
       localStorage.setItem('azchess_sound', G.sound ? '1' : '0');
       if (G.sound) AZ.AudioFX.play('select');
     });
-    $('soundCheck').addEventListener('change', e => {
-      G.sound = e.target.checked;
-      $('soundToggle').textContent = G.sound ? '🔊' : '🔇';
-      localStorage.setItem('azchess_sound', G.sound ? '1' : '0');
-    });
 
-    $('themeSelect').addEventListener('change', e => {
-      document.body.dataset.theme = e.target.value;
-      localStorage.setItem('azchess_theme', e.target.value);
-    });
-    $('difficultySelect').addEventListener('change', e => {
-      G.level = +e.target.value;
-      localStorage.setItem('azchess_level', G.level);
-    });
+    const soundCheck = $('soundCheck');
+    if (soundCheck) {
+      soundCheck.addEventListener('change', e => {
+        G.sound = e.target.checked;
+        const st = $('soundToggle'); if (st) st.textContent = G.sound ? '🔊' : '🔇';
+        localStorage.setItem('azchess_sound', G.sound ? '1' : '0');
+      });
+    }
+
+    const themeSelect = $('themeSelect');
+    if (themeSelect) {
+      themeSelect.addEventListener('change', e => {
+        document.body.dataset.theme = e.target.value;
+        localStorage.setItem('azchess_theme', e.target.value);
+      });
+    }
+
+    const diffSelect = $('difficultySelect');
+    if (diffSelect) {
+      diffSelect.addEventListener('change', e => {
+        G.level = +e.target.value;
+        localStorage.setItem('azchess_level', G.level);
+      });
+    }
 
     const setLang = l => applyLang(l);
-    $('langSelect').addEventListener('change', e => setLang(e.target.value));
-    $('langSelect2').addEventListener('change', e => setLang(e.target.value));
+    const langSelect = $('langSelect');
+    if (langSelect) langSelect.addEventListener('change', e => setLang(e.target.value));
+    const langSelect2 = $('langSelect2');
+    if (langSelect2) langSelect2.addEventListener('change', e => setLang(e.target.value));
 
     window.addEventListener('beforeunload', () => { if (AZ.Net) AZ.Net.leave(); });
   }
@@ -1103,8 +1106,8 @@ AZ.Game = (function () {
     G.lang = AZ.I18N[l] ? l : 'az';
     localStorage.setItem('azchess_lang', G.lang);
     document.documentElement.lang = G.lang;
-    $('langSelect').value = G.lang;
-    $('langSelect2').value = G.lang;
+    const ls1 = $('langSelect'); if (ls1) ls1.value = G.lang;
+    const ls2 = $('langSelect2'); if (ls2) ls2.value = G.lang;
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const k = el.dataset.i18n;
       if (AZ.I18N[G.lang][k]) el.textContent = AZ.I18N[G.lang][k];
@@ -1116,31 +1119,35 @@ AZ.Game = (function () {
     renderStatus();
   }
 
-  /* ---------- İnit ---------- */
   function init() {
     els = {
-      board: $('board'), arrowSvg: $('arrowSvg'),
-      moveList: $('moveList'), status: $('status'),
-      capTop: $('capTop'), capBottom: $('capBottom'),
-      evalFill: $('evalFill'), evalScore: $('evalScore'),
-      navFirst: $('navFirst'), navPrev: $('navPrev'),
-      navNext: $('navNext'), navLast: $('navLast'),
+      board: $('board'), arrowSvg:$('arrowSvg'),
+      moveList: $('moveList'), status:$('status'),
+      capTop: $('capTop'), capBottom:$('capBottom'),
+      evalFill: $('evalFill'), evalScore:$('evalScore'),
+      navFirst: $('navFirst'), navPrev:$('navPrev'),
+      navNext: $('navNext'), navLast:$('navLast'),
       btnResign: $('btnResign')
     };
 
-    // Yaddaşdan parametrlər
     const savedTheme = localStorage.getItem('azchess_theme');
-    if (savedTheme) document.body.dataset.theme = savedTheme;
-    $('themeSelect').value = document.body.dataset.theme;
+    if (savedTheme) {
+      document.body.dataset.theme = savedTheme;
+      const ts = $('themeSelect'); if (ts) ts.value = savedTheme;
+    }
 
     const savedLevel = localStorage.getItem('azchess_level');
-    if (savedLevel) G.level = +savedLevel;
-    $('difficultySelect').value = String(G.level);
+    if (savedLevel) {
+      G.level = +savedLevel;
+      const ds = $('difficultySelect'); if (ds) ds.value = String(G.level);
+    }
 
     const savedSound = localStorage.getItem('azchess_sound');
-    if (savedSound !== null) G.sound = savedSound === '1';
-    $('soundCheck').checked = G.sound;
-    $('soundToggle').textContent = G.sound ? '🔊' : '🔇';
+    if (savedSound !== null) {
+      G.sound = savedSound === '1';
+      const sc = $('soundCheck'); if (sc) sc.checked = G.sound;
+      const st = $('soundToggle'); if (st) st.textContent = G.sound ? '🔊' : '🔇';
+    }
 
     bindModals();
     bindBoard();
