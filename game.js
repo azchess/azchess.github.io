@@ -13,175 +13,6 @@ const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
 const round1 = (n) => Math.round(n * 10) / 10;
 const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
 
-/* ============================ i18n ============================ */
-
-const I18N = (() => {
-  const DICT = {
-    az: {
-      page_title: 'AzChess — Onlayn və Oflayn Şahmat',
-      tagline: 'Dostlarınla onlayn, üz-üzə, ya da kompüterə qarşı şahmat oyna.<br/>Hesab yoxdur. Server yoxdur. Sadəcə şahmat.',
-      btn_play_online: 'Onlayn Oyna', btn_play_local: 'Növbəli Oyun', btn_play_ai: 'Kompüterə Qarşı',
-      btn_settings: 'Ayarlar', footer_text: 'Pulsuz və açıq mənbə • P2P (WebRTC) • Mühərrik: Stockfish',
-      title_back: 'Menyuya qayıt', title_settings: 'Ayarlar', title_close: 'Bağla',
-      title_go_start: 'Əvvələ get', title_prev_move: 'Əvvəlki gediş', title_next_move: 'Növbəti gediş', title_jump_live: 'Canlıya keç',
-      title_resign: 'Təslim ol', title_draw: 'Remis təklif et / qəbul et', title_rematch: 'Revanş istə', title_flip: 'Lövhəni çevir',
-      action_resign: ' Təslim', action_draw: ' Remis', action_accept_draw: ' Remisi qəbul et', action_rematch: ' Revanş', action_flip: ' Çevir',
-      modal_online_title: '🌐 Onlayn Oyna', time_control: 'Vaxt nəzarəti',
-      create_room_heading: 'Otaq yarat', create_room_hint: '6 rəqəmli kodu və ya linki dostunla paylaş.',
-      btn_create_room: 'Otaq Yarat', btn_creating: 'Yaradılır…', btn_copy_link: 'Dəvət Linkini Kopyala',
-      room_waiting: 'Rəqib qoşulmasını gözləyirik…', room_connected_waiting: 'Qoşuldu — ev sahibini gözləyirik…',
-      join_room_heading: 'Otağa qoşul', join_code_placeholder: '6 rəqəmli kod', join_room_hint: 'Kodu və ya tam dəvət linkini yapışdır.',
-      btn_join_room: 'Otağa Qoşul', btn_joining: 'Qoşulur…',
-      modal_local_title: '👥 Növbəli Oyun', local_hint: 'İki oyunçu, bir cihaz. Lövhə hər hərəkətdən sonra çevrilir (Ayarlarda söndürülə bilər).',
-      btn_start_game: 'Oyuna Başla',
-      modal_ai_title: '🤖 Kompüterə Qarşı', ai_hint: 'Sən Ağlarla oynayırsan. Stockfish 10 ilə işləyir (oflayn olduqda daxili mühərrikə keçir).',
-      diff_easy: 'Asan', diff_medium: 'Orta', diff_hard: 'Çətin',
-      promote_to: 'Kimə çevir', piece_queen: 'Vəzir', piece_rook: 'Qala', piece_bishop: 'Fil', piece_knight: 'At',
-      btn_cancel: 'Ləğv et',
-      modal_settings_title: '⚙ Ayarlar', appearance_label: 'Görünüş', opt_dark: '🌙 Tünd', opt_light: '☀️ Açıq',
-      board_colors_label: 'Lövhə rəngləri', custom_colors_label: 'Xüsusi rənglər',
-      light_squares: 'Açıq xanalar', dark_squares: 'Tünd xanalar',
-      piece_set_label: 'Daş dəsti', opt_classic: 'Klassik (Wikipedia)', opt_alpha: 'Alfa',
-      sound_label: 'Səs effektləri', autoflip_label: 'Lövhəni avtomatik çevir (Növbəli Oyun)',
-      btn_home: 'Ana səhifə',
-      confirm_title: 'Təsdiq', confirm_accept: 'Qəbul et', confirm_decline: 'İmtina et',
-      leave_game_title: 'Oyundan çıxılsın?', leave_game_text: 'Cari onlayn oyunda təslim olacaqsan.', leave_game_ok: 'Çıx',
-      resign_title: 'Təslim ol?', resign_text: 'Təslim olduğuna əminsən?', resign_ok: 'Təslim ol',
-      draw_offer_title: 'Remis təklifi', draw_offer_text: 'Rəqibin remis təklif edir.',
-      rematch_title: 'Revanş', rematch_text: 'Rəqibin revanş istəyir — rənglər dəyişəcək.',
-      header_default: 'Şahmat', header_online: 'Onlayn • Otaq ', header_vs_computer: 'Kompüterə qarşı • ', header_pass_play: 'Növbəli Oyun',
-      name_you: 'Sən', name_opponent: 'Rəqib', name_computer: 'Kompüter', name_white: 'Ağlar', name_black: 'Qaralar',
-      status_computer_thinking: '🤖 Kompüter düşünür…',
-      toast_not_connected: 'Qoşulma yoxdur', toast_draw_offer_sent: 'Remis təklifi göndərildi',
-      toast_opponent_joined: 'Rəqib qoşuldu! Sən Ağlarla oynayırsan.', toast_game_started_black: 'Oyun başladı! Sən Qaralarla oynayırsan.',
-      toast_invite_copied: 'Dəvət linki kopyalandı', toast_connected_waiting: 'Qoşuldu! Oyunun başlamasını gözləyirik…',
-      toast_connection_lost: 'Bağlantı kəsildi — yenidən qoşulmağa çalışırıq…', toast_opponent_reconnected: 'Rəqib yenidən qoşuldu',
-      toast_draw_declined: 'Remis təklifi rədd edildi', toast_rematch_declined: 'Revanş rədd edildi',
-      toast_rematch_started: 'Revanş başladı! Sən oynayırsan: ', toast_rematch_sent: 'Revanş istəyi göndərildi — rəqibi gözləyirik…',
-      toast_ai_declines_draw: 'Kompüter remis təklifini rədd etdi', toast_state_synced: 'Oyun vəziyyəti sinxronlaşdırıldı',
-      net_reconnecting: 'Bağlantı kəsildi — yenidən qoşulur…', net_reconnected_syncing: 'Yenidən qoşuldu — sinxronlaşdırılır…',
-      net_room: 'Otaq ', net_synced: ' • sinxron',
-      result_draw: 'Bərabərə', result_white_wins: 'Ağlar qazandı', result_black_wins: 'Qaralar qazandı',
-      reason_checkmate: 'Mat', reason_stalemate: 'Pat', reason_insufficient: 'Kifayət qədər material yoxdur',
-      reason_threefold: 'Üçqat təkrar', reason_fifty: '50-gediş qaydası', reason_resignation: 'Təslim olma',
-      reason_draw_agreement: 'Qarşılıqlı razılıqla remis', reason_timeout: 'Vaxt bitdi', reason_timeout_insuff: 'Vaxt bitdi — mat üçün material yoxdur',
-      reason_game_over: 'Oyun bitdi',
-      net_err_peer_unavailable: 'Otaq tapılmadı. 6 rəqəmli kodu yoxlayın.',
-      net_err_unavailable_id: 'Otaq yaradıla bilmədi (ID məşğuldur). Yenidən cəhd edin.',
-      net_err_network: 'Şəbəkə xətası. İnternet bağlantınızı yoxlayın.',
-      net_err_server: 'Siqnal server xətası. Bir az sonra yenidən cəhd edin.',
-      net_err_browser: 'Brauzeriniz WebRTC dəstəkləmir.',
-      net_err_default: 'Bağlantı xətası',
-      net_err_invalid_code: 'Yanlış kod — 6 rəqəmli otaq kodunu daxil edin (və ya dəvət linkini yapışdırın).',
-      net_err_timeout: 'Bağlantı vaxtı bitdi — otaq artıq mövcud olmaya bilər.',
-      net_err_no_webrtc: 'Bu brauzerdə WebRTC mövcud deyil.'
-    },
-    en: {
-      page_title: 'AzChess — Play Chess Online & Offline',
-      tagline: 'Play chess with friends online, face-to-face, or against a computer.<br/>No account. No server. Just chess.',
-      btn_play_online: 'Play Online', btn_play_local: 'Pass &amp; Play', btn_play_ai: 'Play vs Computer',
-      btn_settings: 'Settings', footer_text: 'Free &amp; open • P2P via WebRTC • Engine: Stockfish',
-      title_back: 'Back to menu', title_settings: 'Settings', title_close: 'Close',
-      title_go_start: 'Go to start', title_prev_move: 'Previous move', title_next_move: 'Next move', title_jump_live: 'Jump to live',
-      title_resign: 'Resign', title_draw: 'Offer / accept draw', title_rematch: 'Request rematch', title_flip: 'Flip board',
-      action_resign: ' Resign', action_draw: ' Draw', action_accept_draw: ' Accept draw', action_rematch: ' Rematch', action_flip: ' Flip',
-      modal_online_title: '🌐 Play Online', time_control: 'Time control',
-      create_room_heading: 'Create a room', create_room_hint: 'Share a 6-digit code or link with a friend.',
-      btn_create_room: 'Create Room', btn_creating: 'Creating…', btn_copy_link: 'Copy Invite Link',
-      room_waiting: 'Waiting for opponent to join…', room_connected_waiting: 'Connected — waiting for host…',
-      join_room_heading: 'Join a room', join_code_placeholder: '6-digit code', join_room_hint: 'Paste a code or a full invite link.',
-      btn_join_room: 'Join Room', btn_joining: 'Joining…',
-      modal_local_title: '👥 Pass &amp; Play', local_hint: 'Two players, one device. The board flips after every move (optional in Settings).',
-      btn_start_game: 'Start Game',
-      modal_ai_title: '🤖 Play vs Computer', ai_hint: 'You play White. Powered by Stockfish 10 (falls back to a built-in engine offline).',
-      diff_easy: 'Easy', diff_medium: 'Medium', diff_hard: 'Hard',
-      promote_to: 'Promote to', piece_queen: 'Queen', piece_rook: 'Rook', piece_bishop: 'Bishop', piece_knight: 'Knight',
-      btn_cancel: 'Cancel',
-      modal_settings_title: '⚙ Settings', appearance_label: 'Appearance', opt_dark: '🌙 Dark', opt_light: '☀️ Light',
-      board_colors_label: 'Board colors', custom_colors_label: 'Custom colors',
-      light_squares: 'Light squares', dark_squares: 'Dark squares',
-      piece_set_label: 'Piece set', opt_classic: 'Classic (Wikipedia)', opt_alpha: 'Alpha',
-      sound_label: 'Sound effects', autoflip_label: 'Auto-rotate board (Pass &amp; Play)',
-      btn_home: 'Home',
-      confirm_title: 'Confirm', confirm_accept: 'Accept', confirm_decline: 'Decline',
-      leave_game_title: 'Leave game?', leave_game_text: 'You will resign the current online game.', leave_game_ok: 'Leave',
-      resign_title: 'Resign?', resign_text: 'Are you sure you want to resign this game?', resign_ok: 'Resign',
-      draw_offer_title: 'Draw offer', draw_offer_text: 'Your opponent offers a draw.',
-      rematch_title: 'Rematch', rematch_text: 'Your opponent wants a rematch — colors will swap.',
-      header_default: 'Chess', header_online: 'Online • Room ', header_vs_computer: 'vs Computer • ', header_pass_play: 'Pass & Play',
-      name_you: 'You', name_opponent: 'Opponent', name_computer: 'Computer', name_white: 'White', name_black: 'Black',
-      status_computer_thinking: '🤖 Computer is thinking…',
-      toast_not_connected: 'Not connected', toast_draw_offer_sent: 'Draw offer sent',
-      toast_opponent_joined: 'Opponent joined! You play White.', toast_game_started_black: 'Game started! You play Black.',
-      toast_invite_copied: 'Invite link copied to clipboard', toast_connected_waiting: 'Connected! Waiting for the game to start…',
-      toast_connection_lost: 'Connection lost — trying to reconnect…', toast_opponent_reconnected: 'Opponent reconnected',
-      toast_draw_declined: 'Draw offer declined', toast_rematch_declined: 'Rematch declined',
-      toast_rematch_started: 'Rematch started! You play ', toast_rematch_sent: 'Rematch request sent — waiting for opponent…',
-      toast_ai_declines_draw: 'Computer declines the draw offer', toast_state_synced: 'Game state synced',
-      net_reconnecting: 'Connection lost — reconnecting…', net_reconnected_syncing: 'Reconnected — syncing…',
-      net_room: 'Room ', net_synced: ' • synced',
-      result_draw: 'Draw', result_white_wins: 'White wins', result_black_wins: 'Black wins',
-      reason_checkmate: 'Checkmate', reason_stalemate: 'Stalemate', reason_insufficient: 'Insufficient material',
-      reason_threefold: 'Threefold repetition', reason_fifty: 'Fifty-move rule', reason_resignation: 'Resignation',
-      reason_draw_agreement: 'Draw by agreement', reason_timeout: 'Time out', reason_timeout_insuff: 'Time out — insufficient mating material',
-      reason_game_over: 'Game over',
-      net_err_peer_unavailable: 'Room not found. Double-check the 6-digit code.',
-      net_err_unavailable_id: 'Could not create the room (ID busy). Please try again.',
-      net_err_network: 'Network error. Check your internet connection.',
-      net_err_server: 'Signalling server error. Please try again in a moment.',
-      net_err_browser: 'Your browser does not support WebRTC.',
-      net_err_default: 'Connection error',
-      net_err_invalid_code: 'Invalid code — enter the 6-digit room code (or paste the invite link).',
-      net_err_timeout: 'Connection timed out — the room may no longer exist.',
-      net_err_no_webrtc: 'WebRTC is not available in this browser.'
-    }
-  };
-
-  let lang = 'az';
-  try { lang = localStorage.getItem('chessweb-lang') || (navigator.language || '').slice(0, 2); } catch (e) {}
-  if (lang !== 'az' && lang !== 'en') lang = 'az';
-
-  function t(key) { return (DICT[lang] && DICT[lang][key]) || DICT.az[key] || key; }
-
-  function setLang(l) {
-    if (l !== 'az' && l !== 'en') return;
-    lang = l;
-    try { localStorage.setItem('chessweb-lang', l); } catch (e) {}
-    apply();
-  }
-
-  function apply() {
-    document.documentElement.lang = lang;
-    document.title = t('page_title');
-    $$('[data-i18n]').forEach(el => { el.innerHTML = t(el.getAttribute('data-i18n')); });
-    $$('[data-i18n-title]').forEach(el => { el.title = t(el.getAttribute('data-i18n-title')); });
-    $$('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
-    $$('.lang-btn').forEach(b => b.classList.toggle('selected', b.dataset.lang === lang));
-    if (typeof Network !== 'undefined' && Network.setMessages) {
-      Network.setMessages({
-        peerUnavailable: t('net_err_peer_unavailable'),
-        unavailableId: t('net_err_unavailable_id'),
-        network: t('net_err_network'),
-        serverError: t('net_err_server'),
-        browserIncompatible: t('net_err_browser'),
-        defaultError: t('net_err_default'),
-        invalidCode: t('net_err_invalid_code'),
-        timeout: t('net_err_timeout'),
-        noWebrtc: t('net_err_no_webrtc')
-      });
-    }
-    // dynamic bits that don't have static markup hooks
-    if (typeof buildTimeSelects === 'function') buildTimeSelects();
-    if (typeof updateHeader === 'function' && G && G.mode) updateHeader();
-    if (typeof updateBars === 'function' && G && G.game) updateBars();
-    if (typeof updateDrawButton === 'function' && G && G.game) updateDrawButton();
-  }
-
-  return { t, setLang, get: () => lang, apply };
-})();
-
-const t = I18N.t;
-
 /* ============================ settings ============================ */
 
 const Settings = (() => {
@@ -210,37 +41,21 @@ const BOARD_THEMES = {
   carbon:  { light: '#bbcbdb', dark: '#47525e' }
 };
 
-// NOTE: the cdnjs/unpkg "chessboard-js" package only ships the minified js/css —
-// it does NOT include the img/chesspieces/ folder, so pieceTheme URLs pointing
-// at that CDN always 404 (this was the "pieces don't show" bug). jsDelivr's
-// GitHub-file CDN can serve straight from the source repo instead, which does
-// contain those images, so we use that as a reliable primary source with a
-// same-repo fallback host in case jsDelivr has an outage.
 const PIECE_SETS = {
-  wikipedia: 'https://cdn.jsdelivr.net/gh/oakmac/chessboardjs@master/website/img/chesspieces/wikipedia/',
-  alpha: 'https://cdn.jsdelivr.net/gh/oakmac/chessboardjs@master/website/img/chesspieces/alpha/'
-};
-const PIECE_SETS_FALLBACK = {
-  wikipedia: 'https://raw.githack.com/oakmac/chessboardjs/master/website/img/chesspieces/wikipedia/',
-  alpha: 'https://raw.githack.com/oakmac/chessboardjs/master/website/img/chesspieces/alpha/'
+  wikipedia: 'https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/img/chesspieces/wikipedia/',
+  alpha: 'https://chessboardjs.com/img/chesspieces/alpha/'
 };
 
-const TIME_WORDS = {
-  az: { bullet: 'Gülləvi', blitz: 'Sürətli', rapid: 'Sürətli', classical: 'Klassik', noclock: '∞ Saatsız' },
-  en: { bullet: 'Bullet', blitz: 'Blitz', rapid: 'Rapid', classical: 'Classical', noclock: '∞ No clock' }
-};
-function tw(key) { return (TIME_WORDS[I18N.get()] || TIME_WORDS.az)[key]; }
 const TIME_PRESETS = [
-  { base: 60,   inc: 0,  labelKey: () => '1 ' + minLabel() + ' • ' + tw('bullet') },
-  { base: 180,  inc: 0,  labelKey: () => '3 ' + minLabel() + ' • ' + tw('blitz') },
-  { base: 180,  inc: 2,  labelKey: () => '3+2 • ' + tw('blitz') },
-  { base: 300,  inc: 0,  labelKey: () => '5 ' + minLabel() + ' • ' + tw('blitz') },
-  { base: 600,  inc: 0,  labelKey: () => '10 ' + minLabel() + ' • ' + tw('rapid') },
-  { base: 900,  inc: 10, labelKey: () => '15+10 • ' + tw('rapid') },
-  { base: 1800, inc: 0,  labelKey: () => '30 ' + minLabel() + ' • ' + tw('classical') },
-  { base: 0,    inc: 0,  labelKey: () => tw('noclock') }
+  { label: '1 min • Bullet',  base: 60,   inc: 0 },
+  { label: '3 min • Blitz',   base: 180,  inc: 0 },
+  { label: '3+2 • Blitz',     base: 180,  inc: 2 },
+  { label: '5 min • Blitz',   base: 300,  inc: 0 },
+  { label: '10 min • Rapid',  base: 600,  inc: 0 },
+  { label: '15+10 • Rapid',   base: 900,  inc: 10 },
+  { label: '30 min • Classical', base: 1800, inc: 0 },
+  { label: '∞ No clock',      base: 0,    inc: 0 }
 ];
-function minLabel() { return I18N.get() === 'az' ? 'dəq' : 'min'; }
 
 function applyAppearance() {
   document.body.dataset.theme = Settings.get('theme');
@@ -340,21 +155,6 @@ function pieceThemeUrl(piece) {
   const base = PIECE_SETS[Settings.get('pieces')] || PIECE_SETS.wikipedia;
   return base + piece + '.png';
 }
-
-// If the primary jsDelivr piece image 404s/errors for any reason, silently
-// swap it for the same file on the raw.githack.com mirror instead of leaving
-// a broken image behind on the board.
-document.addEventListener('error', (e) => {
-  const el = e.target;
-  if (!el || el.tagName !== 'IMG' || !el.src) return;
-  Object.keys(PIECE_SETS).forEach((key) => {
-    const primary = PIECE_SETS[key];
-    if (el.src.indexOf(primary) === 0 && !el.dataset.fallbackTried) {
-      el.dataset.fallbackTried = '1';
-      el.src = PIECE_SETS_FALLBACK[key] + el.src.slice(primary.length);
-    }
-  });
-}, true);
 
 function initBoard() {
   board = Chessboard('board', {
@@ -573,11 +373,11 @@ function postMove(move) {
 
 function checkGameEnd() {
   const g = G.game;
-  if (g.in_checkmate())      { finalize(g.turn() === 'w' ? '0-1' : '1-0', t('reason_checkmate')); return true; }
-  if (g.in_stalemate())      { finalize('1/2-1/2', t('reason_stalemate')); return true; }
-  if (g.insufficient_material()) { finalize('1/2-1/2', t('reason_insufficient')); return true; }
-  if (g.in_threefold_repetition()) { finalize('1/2-1/2', t('reason_threefold')); return true; }
-  if (g.in_draw())           { finalize('1/2-1/2', t('reason_fifty')); return true; }
+  if (g.in_checkmate())      { finalize(g.turn() === 'w' ? '0-1' : '1-0', 'Checkmate'); return true; }
+  if (g.in_stalemate())      { finalize('1/2-1/2', 'Stalemate'); return true; }
+  if (g.insufficient_material()) { finalize('1/2-1/2', 'Insufficient material'); return true; }
+  if (g.in_threefold_repetition()) { finalize('1/2-1/2', 'Threefold repetition'); return true; }
+  if (g.in_draw())           { finalize('1/2-1/2', 'Fifty-move rule'); return true; }
   return false;
 }
 
@@ -636,10 +436,10 @@ function hasMatingMaterial(chessObj, color) {
 
 function onFlag(loser) {
   const winner = loser === 'w' ? 'b' : 'w';
-  let result = '1/2-1/2', reason = t('reason_timeout_insuff');
+  let result = '1/2-1/2', reason = 'Time out — insufficient mating material';
   if (hasMatingMaterial(G.game, winner)) {
     result = winner === 'w' ? '1-0' : '0-1';
-    reason = t('reason_timeout');
+    reason = 'Time out';
   }
   if (G.mode === 'online' && Network.isOpen()) {
     Network.send({ type: 'timeout', result: result, reason: reason });
@@ -770,9 +570,9 @@ function renderCaptured() {
 /* ============================ players / header UI ============================ */
 
 function nameFor(color) {
-  if (G.mode === 'online') return color === G.myColor ? t('name_you') : t('name_opponent');
-  if (G.mode === 'ai') return color === 'w' ? t('name_you') : t('name_computer');
-  return color === 'w' ? t('name_white') : t('name_black');
+  if (G.mode === 'online') return color === G.myColor ? 'You' : 'Opponent';
+  if (G.mode === 'ai') return color === 'w' ? 'You' : 'Computer';
+  return color === 'w' ? 'White' : 'Black';
 }
 
 function updateBars() {
@@ -786,11 +586,10 @@ function updateBars() {
 }
 
 function updateHeader() {
-  let title = t('header_default');
-  const diffLabel = { easy: t('diff_easy'), medium: t('diff_medium'), hard: t('diff_hard') }[selectedAiLevel] || selectedAiLevel;
-  if (G.mode === 'online') title = t('header_online') + (Network.code() || '—');
-  else if (G.mode === 'ai') title = t('header_vs_computer') + diffLabel;
-  else if (G.mode === 'local') title = t('header_pass_play');
+  let title = 'Chess';
+  if (G.mode === 'online') title = 'Online • Room ' + (Network.code() || '—');
+  else if (G.mode === 'ai') title = 'vs Computer • ' + selectedAiLevel.charAt(0).toUpperCase() + selectedAiLevel.slice(1);
+  else if (G.mode === 'local') title = 'Pass & Play';
   $('#header-title').textContent = title;
 }
 
@@ -816,9 +615,9 @@ function mySideColor() { return G.myColor; }
 function updateDrawButton() {
   const label = $('#btn-draw');
   if (G.drawOfferedBy && G.drawOfferedBy !== mySideColor()) {
-    label.innerHTML = '½<span>' + t('action_accept_draw') + '</span>';
+    label.innerHTML = '½<span> Accept draw</span>';
   } else {
-    label.innerHTML = '½<span>' + t('action_draw') + '</span>';
+    label.innerHTML = '½<span> Draw</span>';
   }
   label.disabled = G.over;
 }
@@ -840,7 +639,7 @@ function maybeAiMove() {
   if (G.mode !== 'ai' || G.over || G.aiThinking) return;
   if (G.game.turn() !== 'b') return;
   G.aiThinking = true;
-  setStatus(t('status_computer_thinking'));
+  setStatus('🤖 Computer is thinking…');
   setTimeout(() => {
     AI.getBestMove(G.game.fen(), G.aiLevel).then((uci) => {
       G.aiThinking = false;
@@ -864,8 +663,8 @@ function handleAiDrawOffer() {
   }
   const aiBetter = (counts.b - counts.w) > 1;
   setStatus('');
-  if (aiBetter) { toast(t('toast_ai_declines_draw')); G.drawOfferedBy = null; updateDrawButton(); }
-  else finalize('1/2-1/2', t('reason_draw_agreement'));
+  if (aiBetter) { toast('Computer declines the draw offer'); G.drawOfferedBy = null; updateDrawButton(); }
+  else finalize('1/2-1/2', 'Draw by agreement');
 }
 
 /* ============================ game setup ============================ */
@@ -929,15 +728,14 @@ function hideToast() { $('#toast').classList.remove('show'); clearTimeout(toastT
 function askConfirm(title, text, okLabel, cb) {
   $('#confirm-title').textContent = title;
   $('#confirm-text').textContent = text;
-  $('#btn-confirm-ok').textContent = okLabel || t('confirm_accept');
-  $('#btn-confirm-cancel').textContent = t('confirm_decline');
+  $('#btn-confirm-ok').textContent = okLabel || 'Accept';
   confirmCallback = cb;
   openModal('modal-confirm');
 }
 
 function showGameOver(result, reason) {
   $('#go-icon').textContent = result === '1/2-1/2' ? '⚖️' : '🏆';
-  $('#go-title').textContent = result === '1/2-1/2' ? t('result_draw') : (result === '1-0' ? t('result_white_wins') : t('result_black_wins'));
+  $('#go-title').textContent = result === '1/2-1/2' ? 'Draw' : (result === '1-0' ? 'White wins' : 'Black wins');
   $('#go-reason').textContent = reason || '';
   $('#btn-go-rematch').style.display = (G.mode === 'online' && !Network.isOpen()) ? 'none' : '';
   openModal('modal-gameover');
@@ -989,18 +787,18 @@ function bindOnlineModal() {
     selectedTime = readTimeSelect('online-time');
     const btn = $('#btn-create-room');
     btn.disabled = true;
-    btn.textContent = t('btn_creating');
+    btn.textContent = 'Creating…';
     Network.createRoom().then((code) => {
       btn.disabled = false;
-      btn.textContent = t('btn_create_room');
+      btn.textContent = 'Create Room';
       $('#room-info').classList.remove('hidden');
       $('#room-code').textContent = code;
-      $('#room-waiting').textContent = t('room_waiting');
+      $('#room-waiting').textContent = 'Waiting for opponent to join…';
       updateHeader();
     }).catch((msg) => {
       btn.disabled = false;
-      btn.textContent = t('btn_create_room');
-      err.textContent = msg || t('net_err_default');
+      btn.textContent = 'Create Room';
+      err.textContent = msg || 'Could not create the room. Please try again.';
     });
   });
 
@@ -1008,7 +806,7 @@ function bindOnlineModal() {
     const code = Network.code();
     if (!code) return;
     const link = inviteLink(code);
-    const done = () => toast(t('toast_invite_copied'));
+    const done = () => toast('Invite link copied to clipboard');
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(link).then(done).catch(() => fallbackCopy(link, done));
     } else fallbackCopy(link, done);
@@ -1020,22 +818,21 @@ function bindOnlineModal() {
     const raw = $('#join-code').value;
     const btn = $('#btn-join-room');
     btn.disabled = true;
-    btn.textContent = t('btn_joining');
+    btn.textContent = 'Joining…';
     Network.joinRoom(raw).then(() => {
       btn.disabled = false;
-      btn.textContent = t('btn_join_room');
-      $('#room-waiting') && ($('#room-waiting').textContent = t('room_connected_waiting'));
-      toast(t('toast_connected_waiting'));
+      btn.textContent = 'Join Room';
+      $('#room-waiting') && ($('#room-waiting').textContent = 'Connected — waiting for host…');
+      toast('Connected! Waiting for the game to start…');
       closeModal('modal-online');
     }).catch((msg) => {
       btn.disabled = false;
-      btn.textContent = t('btn_join_room');
+      btn.textContent = 'Join Room';
       err.textContent = msg;
     });
   });
 
-  // closing the online modal (backdrop click or the X button) cancels the
-  // room if we were hosting one, then actually closes the modal.
+  // closing the online modal while hosting cancels the room
   $('#modal-online').addEventListener('click', (e) => {
     if (e.target === $('#modal-online')) cancelRoomIfHosting();
   });
@@ -1045,7 +842,6 @@ function bindOnlineModal() {
 function cancelRoomIfHosting() {
   if (Network.isHost() && !G.mode) Network.cleanup();
   if (G.mode !== 'online') { $('#room-info').classList.add('hidden'); $('#online-error').textContent = ''; }
-  closeModal('modal-online'); // BUGFIX: this call was missing, so the ✕ button did nothing
 }
 
 function fallbackCopy(text, done) {
@@ -1069,13 +865,13 @@ function bindNetwork() {
     closeModal('modal-online');
     setupGame('online', { myColor: 'w', base: selectedTime.base, inc: selectedTime.inc });
     Network.send({ type: 'start', base: selectedTime.base, inc: selectedTime.inc });
-    toast(t('toast_opponent_joined'));
+    toast('Opponent joined! You play White.');
   });
 
   Network.on('start', (d) => {                // joiner side: game begins
     SoundFX.play('notify');
     setupGame('online', { myColor: 'b', base: d.base, inc: d.inc });
-    toast(t('toast_game_started_black'));
+    toast('Game started! You play Black.');
   });
 
   Network.on('move', (d) => {
@@ -1092,66 +888,66 @@ function bindNetwork() {
 
   Network.on('disconnected', () => {
     if (G.mode !== 'online') return;
-    setNetStatus(t('net_reconnecting'), 'bad');
-    toast(t('toast_connection_lost'), true);
+    setNetStatus('Connection lost — reconnecting…', 'bad');
+    toast('Connection lost — trying to reconnect…', true);
   });
 
   Network.on('reconnected', () => {
     hideToast();
     if (Network.isHost() && G.mode === 'online') {
       sendState();
-      setNetStatus(t('toast_opponent_reconnected'), 'good');
-      toast(t('toast_opponent_reconnected'));
+      setNetStatus('Opponent reconnected', 'good');
+      toast('Opponent reconnected');
     } else {
-      setNetStatus(t('net_reconnected_syncing'), 'good');
+      setNetStatus('Reconnected — syncing…', 'good');
     }
   });
 
   Network.on('relistening', () => {
-    if (G.mode === 'online') setNetStatus(t('net_reconnecting'), 'bad');
+    if (G.mode === 'online') setNetStatus('Connection lost — reconnecting…', 'bad');
   });
 
   Network.on('latency', (ms) => {
-    if (G.mode === 'online' && Network.isOpen()) setNetStatus(t('net_room') + Network.code() + ' • ' + ms + 'ms', 'good');
+    if (G.mode === 'online' && Network.isOpen()) setNetStatus('Room ' + Network.code() + ' • ' + ms + 'ms', 'good');
   });
 
   Network.on('fatal', (d) => {
-    if (G.mode === 'online') { toast(d.msg || t('net_err_default'), true); setNetStatus(d.msg || t('net_err_default'), 'bad'); }
-    else { $('#online-error').textContent = d.msg || t('net_err_default') + '.'; }
+    if (G.mode === 'online') { toast(d.msg || 'Connection error', true); setNetStatus(d.msg || 'Connection error', 'bad'); }
+    else { $('#online-error').textContent = d.msg || 'Connection error.'; }
   });
 
   Network.on('resign', () => {
     const winner = G.myColor === 'w' ? '1-0' : '0-1';
-    finalize(winner, t('reason_resignation'));
+    finalize(winner, 'Resignation');
   });
 
   Network.on('drawOffer', (d) => {
     G.drawOfferedBy = d.by;
     updateDrawButton();
     SoundFX.play('notify');
-    askConfirm(t('draw_offer_title'), t('draw_offer_text'), t('confirm_accept'), (ok) => {
-      if (ok) { Network.send({ type: 'drawAnswer', accept: true }); G.drawOfferedBy = null; finalize('1/2-1/2', t('reason_draw_agreement')); }
+    askConfirm('Draw offer', 'Your opponent offers a draw.', 'Accept', (ok) => {
+      if (ok) { Network.send({ type: 'drawAnswer', accept: true }); G.drawOfferedBy = null; finalize('1/2-1/2', 'Draw by agreement'); }
       else { Network.send({ type: 'drawAnswer', accept: false }); G.drawOfferedBy = null; updateDrawButton(); }
     });
   });
 
   Network.on('drawAnswer', (d) => {
-    if (d.accept) { G.drawOfferedBy = null; finalize('1/2-1/2', t('reason_draw_agreement')); }
-    else { G.drawOfferedBy = null; updateDrawButton(); toast(t('toast_draw_declined')); }
+    if (d.accept) { G.drawOfferedBy = null; finalize('1/2-1/2', 'Draw by agreement'); }
+    else { G.drawOfferedBy = null; updateDrawButton(); toast('Draw offer declined'); }
   });
 
   Network.on('timeout', (d) => { if (!G.over) finalize(d.result, d.reason); });
 
   Network.on('rematch', () => {
     SoundFX.play('notify');
-    askConfirm(t('rematch_title'), t('rematch_text'), t('confirm_accept'), (ok) => {
+    askConfirm('Rematch', 'Your opponent wants a rematch — colors will swap.', 'Accept', (ok) => {
       if (ok) { Network.send({ type: 'rematchAccept' }); beginRematch(); }
       else Network.send({ type: 'rematchDecline' });
     });
   });
 
   Network.on('rematchAccept', () => beginRematch());
-  Network.on('rematchDecline', () => toast(t('toast_rematch_declined')));
+  Network.on('rematchDecline', () => toast('Rematch declined'));
 }
 
 function setNetStatus(text, cls) {
@@ -1192,11 +988,11 @@ function applyState(d) {
   updateActionButtons();
   updateTurnUI();
   if (d.over) {
-    if (!G.over) finalize(d.result, d.reason || t('reason_game_over'));
+    if (!G.over) finalize(d.result, d.reason || 'Game over');
   } else {
     startClocks();
-    setNetStatus(t('net_room') + Network.code() + t('net_synced'), 'good');
-    toast(t('toast_state_synced'));
+    setNetStatus('Room ' + Network.code() + ' • synced', 'good');
+    toast('Game state synced');
   }
 }
 
@@ -1204,7 +1000,7 @@ function beginRematch() {
   closeModal('modal-gameover');
   G.myColor = G.myColor === 'w' ? 'b' : 'w';
   setupGame('online', { myColor: G.myColor, base: G.base, inc: G.clocks.inc });
-  toast(t('toast_rematch_started') + (G.myColor === 'w' ? t('name_white') : t('name_black')) + '.');
+  toast('Rematch started! You play ' + (G.myColor === 'w' ? 'White' : 'Black') + '.');
 }
 
 /* ============================ action buttons ============================ */
@@ -1212,7 +1008,7 @@ function beginRematch() {
 function bindActions() {
   $('#btn-home').addEventListener('click', () => {
     if (G.mode === 'online' && !G.over) {
-      askConfirm(t('leave_game_title'), t('leave_game_text'), t('leave_game_ok'), (ok) => {
+      askConfirm('Leave game?', 'You will resign the current online game.', 'Leave', (ok) => {
         if (!ok) return;
         if (Network.isOpen()) Network.send({ type: 'resign' });
         Network.cleanup();
@@ -1226,37 +1022,37 @@ function bindActions() {
 
   $('#btn-resign').addEventListener('click', () => {
     if (G.over) return;
-    askConfirm(t('resign_title'), t('resign_text'), t('resign_ok'), (ok) => {
+    askConfirm('Resign?', 'Are you sure you want to resign this game?', 'Resign', (ok) => {
       if (!ok) return;
       if (G.mode === 'online' && Network.isOpen()) Network.send({ type: 'resign' });
       const loser = G.mode === 'online' ? G.myColor : G.game.turn();
-      finalize(loser === 'w' ? '0-1' : '1-0', t('reason_resignation'));
+      finalize(loser === 'w' ? '0-1' : '1-0', 'Resignation');
     });
   });
 
   $('#btn-draw').addEventListener('click', () => {
     if (G.over) return;
     if (G.mode === 'ai') { handleAiDrawOffer(); return; }
-    if (G.mode === 'local') { finalize('1/2-1/2', t('reason_draw_agreement')); return; }
-    if (!Network.isOpen()) { toast(t('toast_not_connected')); return; }
+    if (G.mode === 'local') { finalize('1/2-1/2', 'Draw by agreement'); return; }
+    if (!Network.isOpen()) { toast('Not connected'); return; }
     if (G.drawOfferedBy && G.drawOfferedBy !== mySideColor()) {
       Network.send({ type: 'drawAnswer', accept: true });
       G.drawOfferedBy = null;
-      finalize('1/2-1/2', t('reason_draw_agreement'));
+      finalize('1/2-1/2', 'Draw by agreement');
     } else if (!G.drawOfferedBy) {
       G.drawOfferedBy = mySideColor();
       Network.send({ type: 'drawOffer', by: G.myColor });
       updateDrawButton();
-      toast(t('toast_draw_offer_sent'));
+      toast('Draw offer sent');
     }
   });
 
   const requestRematch = () => {
     if (G.mode === 'online') {
-      if (!Network.isOpen()) { toast(t('toast_not_connected')); return; }
+      if (!Network.isOpen()) { toast('Not connected'); return; }
       Network.send({ type: 'rematch' });
       G.rematchSent = true;
-      toast(t('toast_rematch_sent'));
+      toast('Rematch request sent — waiting for opponent…');
     } else {
       closeModal('modal-gameover');
       if (G.mode === 'ai') setupGame('ai', { level: G.aiLevel, base: G.base, inc: G.clocks.inc });
@@ -1310,12 +1106,9 @@ function leaveToHome() {
 function buildTimeSelects() {
   ['online-time', 'local-time', 'ai-time'].forEach(id => {
     const sel = $('#' + id);
-    const prevValue = sel.value; // preserve the user's choice across a language switch
     sel.innerHTML = TIME_PRESETS.map(p =>
-      '<option value="' + p.base + '|' + p.inc + '">' + p.labelKey() + '</option>'
+      '<option value="' + p.base + '|' + p.inc + '"' + (p.base === 300 && p.inc === 0 ? ' selected' : '') + '>' + p.label + '</option>'
     ).join('');
-    sel.value = prevValue || (300 + '|' + 0);
-    if (sel.selectedIndex === -1) sel.value = '300|0';
   });
 }
 
