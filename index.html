@@ -4,194 +4,212 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>AzChess — Onlayn Şahmat</title>
-
-  <!-- Google Fonts & Chessboard CSS -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
   <link rel="stylesheet" href="styles.css">
-
-  <!-- Dependencies -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 </head>
 <body>
   <div id="app">
-    <!-- Header -->
-    <header class="app-header">
-      <div class="logo-area" id="btn-brand">
-        <div class="logo-icon">♟</div>
-        <span class="logo-text">AzChess</span>
-      </div>
-
-      <div class="header-right">
-        <div class="lang-selector-mini">
-          <select id="select-lang-head" aria-label="Language">
-            <option value="az">AZ</option>
-            <option value="ru">RU</option>
-            <option value="en">EN</option>
-          </select>
-        </div>
-        <button id="btn-settings-head" class="icon-btn" title="Settings">⚙</button>
-      </div>
-    </header>
-
-    <!-- Main Views Container -->
-    <main class="main-content">
-      
-      <!-- HOME SCREEN -->
-      <section id="view-home" class="view active">
-        <div class="hero-card">
-          <div class="badge">AzChess v2.0</div>
-          <h1 data-i18n="hero_title">Müasir Onlayn Şahmat</h1>
-          <p data-i18n="hero_desc">Dostlarınla onlayn, üz-üzə və ya süni intellektə qarşı pulsuz şahmat oyna.</p>
-          
-          <div class="menu-grid">
-            <button id="btn-mode-online" class="menu-btn primary">
-              <span class="btn-icon">🌐</span>
-              <div class="btn-text">
-                <strong data-i18n="play_online">Onlayn Oyna</strong>
-                <small data-i18n="play_online_sub">P2P Otaq / Linklə dəvət</small>
-              </div>
-            </button>
-
-            <button id="btn-mode-ai" class="menu-btn">
-              <span class="btn-icon">🤖</span>
-              <div class="btn-text">
-                <strong data-i18n="play_ai">Kompüterə Qarşı</strong>
-                <small data-i18n="play_ai_sub">Stockfish Mühərriki</small>
-              </div>
-            </button>
-
-            <button id="btn-mode-local" class="menu-btn">
-              <span class="btn-icon">👥</span>
-              <div class="btn-text">
-                <strong data-i18n="play_local">Pass & Play</strong>
-                <small data-i18n="play_local_sub">Eyni cihazda 2 nəfər</small>
-              </div>
-            </button>
+    <!-- HERO SCREEN -->
+    <section id="screen-home" class="screen active">
+      <div class="hero-card">
+        <div class="logo">
+          <div class="logo-icon">♟</div>
+          <div class="logo-text">
+            <h1>AzChess</h1>
+            <span class="badge">WebRTC P2P</span>
           </div>
         </div>
-      </section>
-
-      <!-- GAME SCREEN -->
-      <section id="view-game" class="view">
-        <div class="game-container">
-          
-          <!-- Top Player Bar -->
-          <div class="player-bar" id="player-top">
-            <div class="player-info">
-              <span class="player-avatar" id="avatar-top">👤</span>
-              <span class="player-name" id="name-top">Rəqib</span>
-            </div>
-            <div class="clock" id="clock-top">10:00</div>
-          </div>
-
-          <!-- Board Wrapper -->
-          <div class="board-wrapper">
-            <div id="board"></div>
-          </div>
-
-          <!-- Bottom Player Bar -->
-          <div class="player-bar" id="player-bottom">
-            <div class="player-info">
-              <span class="player-avatar" id="avatar-bottom">👤</span>
-              <span class="player-name" id="name-bottom">Sən</span>
-            </div>
-            <div class="clock" id="clock-bottom">10:00</div>
-          </div>
-
-          <!-- Game Controls & Move Log -->
-          <div class="game-panel">
-            <div class="move-history" id="move-list"></div>
-            
-            <div class="game-actions">
-              <button id="btn-draw" class="action-btn" title="Draw">½</button>
-              <button id="btn-resign" class="action-btn danger" title="Resign">🏳</button>
-              <button id="btn-flip" class="action-btn" title="Flip Board">🔄</button>
-              <button id="btn-home" class="action-btn" title="Home">🏠</button>
-            </div>
-          </div>
-
-        </div>
-      </section>
-    </main>
-
-    <!-- MODAL: ONLINE MENU -->
-    <div id="modal-online" class="modal-backdrop">
-      <div class="modal-box">
-        <button class="modal-close" id="btn-close-online">✕</button>
-        <h3 data-i18n="online_menu">Onlayn Oyun</h3>
+        <p class="tagline" data-i18n="tagline">Dostlarınla onlayn, üz-üzə və ya kompüterə qarşı şahmat oyna.</p>
         
-        <div class="tc-select-group">
-          <label data-i18n="time_control">Vaxt Nəzarəti:</label>
-          <select id="select-tc-online">
-            <option value="60">1 dəq (Bullet)</option>
-            <option value="180">3 dəq (Blitz)</option>
-            <option value="300" selected>5 dəq (Blitz)</option>
-            <option value="600">10 dəq (Rapid)</option>
-            <option value="0">Vaxtsız</option>
-          </select>
+        <div class="home-actions">
+          <button id="btn-mode-online" class="btn btn-primary btn-lg">
+            <span class="btn-icon">🌐</span> <span data-i18n="play_online">Onlayn oyna</span>
+          </button>
+          <button id="btn-mode-local" class="btn btn-secondary btn-lg">
+            <span class="btn-icon">👥</span> <span data-i18n="play_local">Pass & Play</span>
+          </button>
+          <button id="btn-mode-ai" class="btn btn-tertiary btn-lg">
+            <span class="btn-icon">🤖</span> <span data-i18n="play_ai">Kompüterə qarşı</span>
+          </button>
+          <button id="btn-open-settings" class="btn btn-ghost btn-lg">
+            <span class="btn-icon">⚙</span> <span data-i18n="settings">Tənzimləmələr</span>
+          </button>
+        </div>
+        <footer class="home-footer" data-i18n="footer">Pulsuz • P2P • Stokfish Dəstəyi</footer>
+      </div>
+    </section>
+
+    <!-- GAME SCREEN -->
+    <section id="screen-game" class="screen">
+      <header class="game-header">
+        <button id="btn-home" class="btn btn-icon-only" title="Əsas səhifə">⌂</button>
+        <div class="room-status" id="room-status">
+          <span class="status-dot"></span>
+          <span id="room-text" data-i18n="not_connected">Qoşulmayıb</span>
+        </div>
+        <button id="btn-game-settings" class="btn btn-icon-only" title="Tənzimləmələr">⚙</button>
+      </header>
+
+      <main class="game-layout">
+        <div class="player-bar top" id="player-top">
+          <div class="player-info">
+            <span class="player-avatar">👤</span>
+            <span class="player-name" id="name-top">Rəqib</span>
+            <span class="player-captures" id="captures-top"></span>
+          </div>
+          <div class="clock" id="clock-top">--:--</div>
         </div>
 
-        <button id="btn-create-room" class="btn-block primary" data-i18n="create_room">Otaq Yarat</button>
-
-        <div class="divider"><span>və ya</span></div>
-
-        <div class="join-group">
-          <input type="text" id="input-room-code" placeholder="6-rəqəmli kod" maxlength="6">
-          <button id="btn-join-room" class="btn-block" data-i18n="join_room">Qoşul</button>
+        <div class="board-wrapper">
+          <div id="board"></div>
         </div>
 
-        <div id="room-info" class="room-info-box hidden">
-          <p data-i18n="waiting_opponent">Rəqib gözlənilir...</p>
-          <div class="room-code-display" id="display-room-code">------</div>
-          <button id="btn-copy-link" class="btn-sm" data-i18n="copy_link">📋 Linki Kopyala</button>
+        <div class="player-bar bottom" id="player-bottom">
+          <div class="player-info">
+            <span class="player-avatar">👤</span>
+            <span class="player-name" id="name-bottom">Sən</span>
+            <span class="player-captures" id="captures-bottom"></span>
+          </div>
+          <div class="clock" id="clock-bottom">--:--</div>
+        </div>
+
+        <div class="game-panel">
+          <div class="eval-bar-wrap" id="eval-wrap">
+            <div class="eval-bar" id="eval-bar" style="height: 50%;"></div>
+          </div>
+
+          <div class="panel-content">
+            <div class="status-banner" id="status-banner">--</div>
+
+            <div class="move-list-wrap">
+              <ol class="move-list" id="move-list"></ol>
+            </div>
+
+            <div class="history-controls">
+              <button id="btn-first" class="btn btn-sm">«</button>
+              <button id="btn-prev" class="btn btn-sm">‹</button>
+              <button id="btn-next" class="btn btn-sm">›</button>
+              <button id="btn-last" class="btn btn-sm">»</button>
+            </div>
+
+            <div class="in-game-actions">
+              <button id="btn-draw" class="btn btn-secondary btn-sm" data-i18n="draw">½ Heç-heçə</button>
+              <button id="btn-resign" class="btn btn-danger btn-sm" data-i18n="resign">🏳 Təslim ol</button>
+              <button id="btn-flip" class="btn btn-ghost btn-sm" data-i18n="flip">🔄 Çevir</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </section>
+
+    <!-- MODAL: ONLINE OPTIONS -->
+    <div class="modal" id="modal-online">
+      <div class="modal-backdrop"></div>
+      <div class="modal-card">
+        <button class="modal-close" data-close="modal-online">✕</button>
+        <h3 data-i18n="play_online">Onlayn Oyna</h3>
+        
+        <div class="form-group">
+          <label data-i18n="time_control">Vaxt nəzarəti</label>
+          <select id="select-time-control" class="input"></select>
+        </div>
+
+        <div class="online-tabs">
+          <button id="btn-create-room" class="btn btn-primary" data-i18n="create_room">Otaq yarat</button>
+          <div class="divider"><span>və ya</span></div>
+          <div class="join-box">
+            <input type="text" id="input-room-code" class="input" placeholder="6 rəqəmli kod" maxlength="6">
+            <button id="btn-join-room" class="btn btn-secondary" data-i18n="join_room">Qoşul</button>
+          </div>
+        </div>
+
+        <div id="room-info" class="room-info hidden">
+          <p data-i18n="waiting">Rəqibin qoşulması gözlənilir…</p>
+          <div class="code-display" id="display-code">------</div>
+          <button id="btn-copy-link" class="btn btn-ghost btn-sm" data-i18n="copy_link">📋 Linki Kopyala</button>
         </div>
       </div>
     </div>
 
     <!-- MODAL: SETTINGS -->
-    <div id="modal-settings" class="modal-backdrop">
-      <div class="modal-box">
-        <button class="modal-close" id="btn-close-settings">✕</button>
+    <div class="modal" id="modal-settings">
+      <div class="modal-backdrop"></div>
+      <div class="modal-card">
+        <button class="modal-close" data-close="modal-settings">✕</button>
         <h3 data-i18n="settings">Tənzimləmələr</h3>
-        
-        <div class="setting-item">
-          <label data-i18n="language">Dil / Language:</label>
-          <select id="select-lang-modal">
+
+        <div class="form-group">
+          <label data-i18n="language">Dil / Language</label>
+          <select id="select-lang" class="input">
             <option value="az">Azərbaycan</option>
-            <option value="ru">Русский</option>
             <option value="en">English</option>
+            <option value="ru">Русский</option>
           </select>
         </div>
 
-        <div class="setting-item">
-          <label data-i18n="board_theme">Lövhə Mövzusu:</label>
-          <select id="select-board-theme">
-            <option value="classic">Klassik (Qəhvəyi)</option>
-            <option value="blue">Mavi (Lichess Blue)</option>
-            <option value="green">Yaşıl (Lichess Green)</option>
-            <option value="purple">Bənövşəyi</option>
-            <option value="dark">Tünd Kömür</option>
-          </select>
+        <div class="form-group">
+          <label data-i18n="piece_set">Fiqur dəsti</label>
+          <select id="select-piece-set" class="input"></select>
         </div>
 
-        <div class="setting-item">
-          <label data-i18n="sound_effects">Səs Effektləri:</label>
-          <input type="checkbox" id="check-sound" checked>
+        <div class="form-group">
+          <label data-i18n="board_colors">Lövhə mövzusu</label>
+          <select id="select-board-theme" class="input"></select>
+        </div>
+
+        <div class="form-group-checkbox">
+          <label>
+            <input type="checkbox" id="check-sound" checked>
+            <span data-i18n="sound">🔊 Səs effektləri</span>
+          </label>
+        </div>
+
+        <div class="form-group-checkbox">
+          <label>
+            <input type="checkbox" id="check-autoflip">
+            <span data-i18n="autoflip">🔃 Lövhəni avtomatik çevir (Pass & Play)</span>
+          </label>
         </div>
       </div>
     </div>
 
-    <!-- Toast Notifications Container -->
+    <!-- MODAL: PROMOTION -->
+    <div class="modal" id="modal-promote">
+      <div class="modal-card compact">
+        <h3 data-i18n="promote">Fiquru çevir</h3>
+        <div class="promote-choices">
+          <button data-piece="q" class="btn-piece">♕</button>
+          <button data-piece="r" class="btn-piece">♖</button>
+          <button data-piece="b" class="btn-piece">♗</button>
+          <button data-piece="n" class="btn-piece">♘</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: GAME OVER -->
+    <div class="modal" id="modal-gameover">
+      <div class="modal-backdrop"></div>
+      <div class="modal-card center">
+        <h2 id="go-title">Oyun Bitdi</h2>
+        <p id="go-reason">--</p>
+        <div class="modal-actions">
+          <button id="btn-rematch" class="btn btn-primary" data-i18n="rematch">🔁 Revanş</button>
+          <button id="btn-go-home" class="btn btn-secondary" data-i18n="close">Bağla</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
     <div id="toast-container"></div>
   </div>
 
-  <script src="styles.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   <script src="network.js"></script>
   <script src="ai.js"></script>
   <script src="game.js"></script>
