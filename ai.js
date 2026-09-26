@@ -1,4 +1,4 @@
-ai_js = r'''/* ============================================================
+/* ============================================================
    AzChess — ai.js
    Negamax + Alfa-Beta kəsimi, Piece-Square Tables,
    4 çətinlik: Asan(1) Orta(2) Çətin(3) Qrosmeyster(4)
@@ -16,11 +16,12 @@ const PST_R=[0,0,0,0,0,0,0,0,5,10,10,10,10,10,10,5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,
 const PST_Q=[-20,-10,-10,-5,-5,-10,-10,-20,-10,0,0,0,0,0,0,-10,-10,0,5,5,5,5,0,-10,-5,0,5,5,5,5,0,-5,0,0,5,5,5,5,0,-5,-10,5,5,5,5,5,0,-10,-10,0,5,0,0,0,0,-10,-20,-10,-10,-5,-5,-10,-10,-20];
 const PST_K=[-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-20,-30,-30,-40,-40,-30,-30,-20,-10,-20,-20,-20,-20,-20,-20,-10,20,20,0,0,0,0,20,20,20,30,10,0,0,10,30,20];
 const PSTS={[P]:PST_P,[N]:PST_N,[Bp]:PST_B,[R]:PST_R,[Q]:PST_Q,[K]:PST_K};
+
 function pstIndex(sq,white){
   const f=E.fileOf(sq),r=E.rankOf(sq);
   return white?(7-r)*8+f:r*8+f;
 }
-// Ağın baxışından qiymətləndirmə (centipawn)
+
 function evalState(st){
   let score=0,bPhase=0;
   for(let s=0;s<128;s++){
@@ -31,7 +32,7 @@ function evalState(st){
     score+=white?v:-v;
     if(t!==P&&t!==K)bPhase+=VAL[t];
   }
-  return score/100; // pawns
+  return score/100;
 }
 function evalCp(st){return evalState(st)*100}
 
@@ -46,6 +47,7 @@ function orderMoves(st,moves){
   moves.sort((a,b)=>b._s-a._s);
   return moves;
 }
+
 function quiesce(st,alpha,beta,whitePOV,depth){
   const stand=whitePOV?evalCp(st):-evalCp(st);
   if(depth<=0)return stand;
@@ -62,6 +64,7 @@ function quiesce(st,alpha,beta,whitePOV,depth){
   }
   return alpha;
 }
+
 function negamax(st,depth,alpha,beta){
   if(depth===0)return quiesce(st,alpha,beta,st.turn==='w',2);
   const moves=orderMoves(st,E.genLegal(st));
@@ -69,7 +72,6 @@ function negamax(st,depth,alpha,beta){
     if(E.inCheck(st,st.turn==='w'))return -99999-depth;
     return 0;
   }
-  // sadə razılaşdırıcı təkrar axtarışı yoxdur — sürət üçün kifayətdir
   for(const m of moves){
     const u=E.makeMove(st,m);
     const sc=-negamax(st,depth-1,-beta,-alpha);
@@ -79,12 +81,12 @@ function negamax(st,depth,alpha,beta){
   }
   return alpha;
 }
+
 function findBestMove(st,depth){
   const stc=E.cloneState(st);
   const legal=E.genLegal(stc);
   if(!legal.length)return null;
   orderMoves(stc,legal);
-  // Səviyyə 1 (Asan): təsadüfi ağıllı gediş — aşkar blunder-lardan qaçın
   let best=null,bestScore=-Infinity;
   const rootWhite=stc.turn==='w';
   for(const m of legal){
@@ -100,182 +102,6 @@ function findBestMove(st,depth){
   }
   return {move:best,cp:Math.round(bestScore)};
 }
+
 window.AzAI={evalState,findBestMove,evalCp};
-})(); 
-'''
-open('ai.js','w',encoding='utf-8').write(ai_js)
-
-network_js = r'''/* ============================================================
-   AzChess — network.js
-   WebRTC P2P (PeerJS): 6 rəqəmli otaq kodu + dəvət linki
-   ============================================================ */
-'use strict';
-(function(){
-const PREFIX='azchess-';
-const App=window.AzApp, UI=window.AzUI;
-let peer=null, conn=null, role=null, roomCode=null, intentionalClose=false;
-
-function setStatus(id,msg,err){
-  const el=document.getElementById(id);
-  el.textContent=msg;el.classList.toggle('err',!!err);
-}
-function genCode(){return String(Math.floor(100000+Math.random()*900000))}
-
-function cleanup(){
-  intentionalClose=true;
-  try{conn&&conn.close()}catch(e){}
-  try{peer&&peer.destroy()}catch(e){}
-  peer=null;conn=null;role=null;
-}
-function cleanupIfUnconnected(){
-  if(!conn||!conn.open){cleanup()}
-}
-function resetFlag(){intentionalClose=false}
-
-function startHost(){
-  cleanup();resetFlag();
-  roomCode=genCode();
-  document.getElementById('roomCodeBox').textContent=roomCode;
-  const link=location.origin+location.pathname+'?room='+roomCode;
-  document.getElementById('inviteLink').value=link;
-  setStatus('netStatusCreate',UI.t('waiting'));
-  peer=new Peer(PREFIX+roomCode,{debug:0});
-  peer.on('open',()=>{setStatus('netStatusCreate',UI.t('roomReady'))});
-  peer.on('error',err=>{
-    if(err.type==='unavailable-id'){startHost();return}
-    setStatus('netStatusCreate',UI.t('connErr')+': '+err.type,true);
-  });
-  peer.on('connection',c=>{
-    if(conn&&conn.open){c.close();return}
-    conn=c;role='host';wireConn();
-  });
-}
-function startJoin(code){
-  cleanup();resetFlag();
-  if(!/^\d{6}$/.test(code)){setStatus('netStatusJoin',UI.t('connErr'),true);return}
-  roomCode=code;
-  setStatus('netStatusJoin',UI.t('connecting'));
-  peer=new Peer({debug:0});
-  peer.on('open',()=>{
-    conn=peer.connect(PREFIX+code,{reliable:true});
-    role='guest';wireConn();
-  });
-  peer.on('error',err=>{setStatus('netStatusJoin',UI.t('connErr')+': '+err.type,true)});
-  setTimeout(()=>{if(!conn||!conn.open)setStatus('netStatusJoin',UI.t('connLost'),true)},15000);
-}
-function wireConn(){
-  conn.on('open',()=>{
-    setStatus(role==='host'?'netStatusCreate':'netStatusJoin',UI.t('connected'));
-    if(role==='host'){
-      // rənglər təsadüfi paylanır
-      const hostColor=Math.random()<0.5?'w':'b';
-      App.myColor=hostColor;
-      send({t:'init',guestColor:hostColor==='w'?'b':'w',tc:UI.getTc()});
-      const tc=UI.getTc();
-      App.mode='online';
-      setTimeout(()=>{
-        UI.startGame('online');
-        // startGame myColor-u özü təyin etmir — biz təyin etmişik; saatlar tc ilə
-        App.myColor=hostColor;App.orientation=hostColor;
-        UI.renderBoard();UI.updatePanels();
-      },300);
-    }
-  });
-  conn.on('data',onData);
-  conn.on('close',()=>{
-    UI.toast(UI.t('connLost'));
-    if(App.started&&!App.over){
-      App.started=false;
-      UI.endGame({winner:App.myColor==='w'?'w':'b',reason:'resign'});
-    }
-    cleanup();
-  });
-  conn.on('error',()=>{setStatus('netStatusJoin',UI.t('connErr'),true)});
-}
-function send(obj){if(conn&&conn.open)conn.send(obj)}
-
-function onData(d){
-  if(!d||typeof d!=='object')return;
-  switch(d.t){
-    case 'init':{
-      App.myColor=d.guestColor;
-      App.mode='online';
-      setTimeout(()=>{
-        UI.startGame('online');
-        App.myColor=d.guestColor;App.orientation=d.guestColor;
-        UI.renderBoard();UI.updatePanels();
-      },300);
-      break;
-    }
-    case 'move':{
-      const m=window.AzEngine.findByUci(App.state,d.uci);
-      if(m){
-        UI.setFromNetwork(true);
-        // saat sinxronu
-        if(typeof d.cw==='number')App.clocks.w=d.cw;
-        if(typeof d.cb==='number')App.clocks.b=d.cb;
-        UI.doMove(m);
-        UI.setFromNetwork(false);
-      }
-      break;
-    }
-    case 'resign':{
-      UI.endGame({winner:App.myColor,reason:'resign'});
-      break;
-    }
-    case 'drawOffer':{
-      if(confirm(UI.t('drawOfferIn'))){send({t:'drawAccept'});UI.endGame({winner:null,reason:'drawAgreed'})}
-      else send({t:'drawDecline'});
-      break;
-    }
-    case 'drawAccept':UI.endGame({winner:null,reason:'drawAgreed'});break;
-    case 'drawDecline':UI.toast('✕');break;
-    case 'rematch':{
-      // rənglər dəyişir
-      App.myColor=App.myColor==='w'?'b':'w';
-      UI.startGame('online');
-      App.orientation=App.myColor;
-      UI.renderBoard();UI.updatePanels();
-      UI.toast('🔄 '+UI.t('rematch'));
-      break;
-    }
-  }
-}
-function sendMove(m){
-  send({t:'move',uci:window.AzEngine.uciOf(m),cw:App.clocks.w,cb:App.clocks.b});
-}
-
-/* --- UI bağlamaları --- */
-document.getElementById('tabCreate').onclick=()=>{
-  document.getElementById('tabCreate').classList.add('active');
-  document.getElementById('tabJoin').classList.remove('active');
-  document.getElementById('paneCreate').style.display='';
-  document.getElementById('paneJoin').style.display='none';
-  startHost();
-};
-document.getElementById('tabJoin').onclick=()=>{
-  document.getElementById('tabJoin').classList.add('active');
-  document.getElementById('tabCreate').classList.remove('active');
-  document.getElementById('paneJoin').style.display='';
-  document.getElementById('paneCreate').style.display='none';
-};
-document.getElementById('btnJoin').onclick=()=>{
-  startJoin(document.getElementById('joinCode').value.trim());
-};
-document.getElementById('btnCopyLink').onclick=()=>{
-  const inp=document.getElementById('inviteLink');
-  navigator.clipboard&&navigator.clipboard.writeText(inp.value).then(()=>UI.toast(UI.t('copied')));
-};
-// ?room=XXXXXX dəvət linki
-const m=location.search.match(/room=(\d{6})/);
-if(m){
-  UI.openModal('modalOnline');
-  document.getElementById('tabJoin').click();
-  document.getElementById('joinCode').value=m[1];
-  startJoin(m[1]);
-}
-window.AzNet={send,sendMove,cleanup,cleanupIfUnconnected};
-})(); 
-'''
-open('network.js','w',encoding='utf-8').write(network_js)
-print('ai.js', len(ai_js), 'network.js', len(network_js))
+})();
