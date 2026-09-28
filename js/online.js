@@ -38,8 +38,20 @@ export function createOnline(x) {
   }
 
   // Yalnız görünüş effektləri: oyunun nəticəsinə, gedişlərə və saata təsir etmir.
-  const FX = new Set(['flip', 'disco', 'boo']);
-  let fxBusy = false;
+  const FX = new Set(['flip', 'disco', 'boo', 'shake', 'shuffle']);
+  let fxBusy = false, pendingFx = null;
+  let fxCss = false;
+  function ensureFxCss() {
+    if (fxCss) return;
+    fxCss = true;
+    const s = document.createElement('style');
+    s.textContent = '@keyframes az-shake{0%{transform:translate(0,0) rotate(0)}25%{transform:translate(-3%,1%) rotate(-5deg)}50%{transform:translate(3%,-1%) rotate(4deg)}75%{transform:translate(-1%,-3%) rotate(-4deg)}100%{transform:translate(0,0) rotate(0)}}'
+      + '.fx-shake .pc svg{animation:az-shake .13s linear infinite}'
+      + '.fx-shake .pc:nth-child(2n) svg{animation-delay:-.05s;animation-duration:.11s}'
+      + '.fx-shake .pc:nth-child(3n) svg{animation-delay:-.09s;animation-duration:.15s}'
+      + '@media (prefers-reduced-motion:reduce){.fx-shake .pc svg{animation:none}}';
+    document.head.append(s);
+  }
   function runFx(name) {
     if (typeof name !== 'string' || !FX.has(name)) return;
     if (name === 'boo') { x.toast('👻 BOO!'); return; }
@@ -56,6 +68,30 @@ export function createOnline(x) {
       let i = 0;
       const iv = setInterval(() => { root.dataset.theme = themes[i++ % themes.length]; }, 400);
       finish(5000, () => { clearInterval(iv); root.dataset.theme = x.S.get().theme; });
+    } else if (name === 'shake') {
+      ensureFxCss();
+      const b = x.board;
+      b.root.classList.add('fx-shake');
+      finish(4000, () => b.root.classList.remove('fx-shake'));
+    } else if (name === 'shuffle') {
+      // Fiqurlar yalnız görünüşdə qarışır; oyun vəziyyəti dəyişmir. 3 saniyə lövhə kilidlənir.
+      const b = x.board;
+      const els = [...b.pcs.values()];
+      if (els.length < 2) { fxBusy = false; return; }
+      const sqs = [...b.pcs.keys()];
+      for (let i = sqs.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [sqs[i], sqs[j]] = [sqs[j], sqs[i]];
+      }
+      const wasLocked = b.lock;
+      b.lock = true;
+      b.clear();
+      els.forEach((e, i) => b.place(e, sqs[i]));
+      x.toast('🎲');
+      finish(3000, () => {
+        for (const [sq, e] of b.pcs) b.place(e, sq);
+        b.lock = wasLocked;
+      });
     }
   }
 
@@ -113,6 +149,8 @@ export function createOnline(x) {
         if (mineR) startRematch(); else x.toast(t('rematchAsk'));
         return;
       case 'fx':
+        // Qarışdırma effekti gedişi sənin sıranda olsa, saatına təsir etməsin deyə gedişindən sonraya saxlanılır.
+        if (d.name === 'shuffle' && !over && x.game.turn() === o.color) { pendingFx = 'shuffle'; return; }
         runFx(d.name);
         return;
       case 'chat':
@@ -151,7 +189,7 @@ export function createOnline(x) {
   function teardown() {
     net?.leave();
     net = null; role = null; guestKey = null; myKey = null;
-    mineR = theirR = false; offerPly = -1;
+    mineR = theirR = false; offerPly = -1; pendingFx = null;
     mode(false);
     setDot(null);
     showCode('');
@@ -234,8 +272,11 @@ export function createOnline(x) {
   });
   $('d-no').addEventListener('click', () => net?.send('drawDecline'));
 
-  o.sendMove = m => net?.send('move', { from: m.from, to: m.to, promo: m.promotion,
-    ply: x.game.history().length, ms: Math.round(x.clock.ms[m.color]) });
+  o.sendMove = m => {
+    net?.send('move', { from: m.from, to: m.to, promo: m.promotion,
+      ply: x.game.history().length, ms: Math.round(x.clock.ms[m.color]) });
+    if (pendingFx) { const n = pendingFx; pendingFx = null; setTimeout(() => runFx(n), 400); }
+  };
   o.sendEnd = reason => net?.send('end', { reason });
   o.fx = name => { if (net?.open && FX.has(name)) net.send('fx', { name }); };
   o.offerDraw = () => {
