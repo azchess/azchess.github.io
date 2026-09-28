@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="az">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <title>AzChess — Onlayn Şahmat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">♞ <span>AzChess</span></div>
+      <div class="mode-buttons">
+        <button class="chip active" id="btnAi">🤖 Kompüter</button>
+        <button class="chip" id="btnPvp">👥 2 oyunçu</button>
+        <button class="chip" id="btnOnline">🌐 Onlayn</button>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" id="btnFlip" title="Taxtanı çevir">↻</button>
+        <button class="icon-btn" id="btnSettings" title="Parametrlər">⚙</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="board-column">
+        <div class="statusbar">
+          <div>
+            <strong id="status">Ağların gedişidir</strong>
+            <span id="subStatus">Kompüterə qarşı</span>
+          </div>
+          <div class="eval">
+            <div class="eval-track"><div id="evalFill"></div></div>
+            <span id="evalText">0.0</span>
+          </div>
+        </div>
+
+        <div class="board-shell">
+          <div id="board" class="board" aria-label="Şahmat taxtası"></div>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn" id="btnUndo">↶ Geri</button>
+          <button class="btn" id="btnNew">Yeni oyun</button>
+          <button class="btn danger" id="btnResign">Təslim</button>
+        </div>
+      </section>
+
+      <aside class="side-panel">
+        <div class="panel-card">
+          <h2>Gedişlər</h2>
+          <div id="moveList" class="move-list"></div>
+        </div>
+        <div class="panel-card">
+          <h2>Vəziyyət</h2>
+          <div id="captured" class="captured">Heç nə yoxdur</div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <div class="modal hidden" id="settingsModal">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card">
+      <button class="modal-close" data-close>×</button>
+      <h2>Parametrlər</h2>
+      <label>Tema
+        <select id="themeSelect">
+          <option value="green">Yaşıl</option>
+          <option value="classic">Klassik</option>
+          <option value="blue">Mavi</option>
+          <option value="purple">Bənövşəyi</option>
+          <option value="dark">Qaranlıq</option>
+        </select>
+      </label>
+      <label>AI səviyyəsi
+        <select id="difficultySelect">
+          <option value="1">Asan</option>
+          <option value="2" selected>Orta</option>
+          <option value="3">Çətin</option>
+          <option value="4">Güclü</option>
+        </select>
+      </label>
+      <label class="check"><input type="checkbox" id="soundCheck" checked> Gediş səsi</label>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="onlineModal">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card">
+      <button class="modal-close" data-close>×</button>
+      <h2>Onlayn oyun</h2>
+      <button class="btn primary wide" id="createRoom">Otaq yarat</button>
+      <div class="or">və ya</div>
+      <div class="join-row">
+        <input id="roomInput" maxlength="6" inputmode="numeric" placeholder="6 rəqəmli kod">
+        <button class="btn primary" id="joinRoom">Qoşul</button>
+      </div>
+      <div id="roomInfo" class="room-info hidden"></div>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="gameOverModal">
+    <div class="modal-card small">
+      <h2 id="gameOverTitle">Oyun bitdi</h2>
+      <p id="gameOverText"></p>
+      <button class="btn primary wide" id="overNew">Yeni oyun</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="network.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
