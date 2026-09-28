@@ -87,8 +87,9 @@ function initSettings(){swatches('sw-theme','theme',THEMES,(b,v)=>b.dataset.them
 applyDom();initSettings();S.subscribe(apply);layout();apply();newGame();
 $('b-undo').addEventListener('click',undo);$('b-resign').addEventListener('click',resign);$('b-new').addEventListener('click',newGame);$('b-set').addEventListener('click',()=>$('dlg-settings').showModal());$('b-flip').addEventListener('click',()=>{flipped=!flipped;board.setFlip(flipped);layout();});$('r-again').addEventListener('click',()=>online?.active?online.rematch():newGame());$('r-new').addEventListener('click',()=>{newGame();$('dlg-settings').showModal();});document.addEventListener('visibilitychange',()=>clock.tick());
 const wide=matchMedia('(min-aspect-ratio:1/1)'),syncHist=()=>{$('hist').open=wide.matches};wide.addEventListener('change',syncHist);syncHist();
-window.__azchess={game,clock,bars,toast,mode,newGame,loadState,play:playRemote,isOver:()=>over,end,result,setFlip:v=>{flipped=!!v;board.setFlip(flipped);layout();},S,$};
+window.__azchess={board,game,clock,bars,toast,mode,newGame,loadState,play:playRemote,isOver:()=>over,end,result,setFlip:v=>{flipped=!!v;board.setFlip(flipped);layout();},S,$};
 online=createOnline(window.__azchess);
+window.prank=n=>online.fx(n);
 $('b-online').addEventListener('click',()=>{$('dlg-online').showModal();});
 $('on-close').addEventListener('click',()=>$('dlg-online').close());
 $('b-ai').addEventListener('click',()=>$('dlg-ai').showModal());
