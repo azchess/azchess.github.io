@@ -15,6 +15,9 @@ export function createOnline(x) {
   const dlg = $('dlg-online');
   const o = { active: false, color: 'w', canMove: () => o.active && !!net?.open && x.game.turn() === o.color };
   let net = null, role = null, guestKey = null, myKey = null, lastCode = null;
+  const SKEY = 'azchess:session';
+  const saveSes = () => { try { sessionStorage.setItem(SKEY, JSON.stringify({ code: lastCode, key: myKey })); } catch { /* yaddaş yoxdur */ } };
+  const clearSes = () => { try { sessionStorage.removeItem(SKEY); } catch { /* yaddaş yoxdur */ } };
   let tc = { min: 5, inc: 0 }, mineR = false, theirR = false, offerPly = -1, first = true;
 
   const view = id => { for (const v of ['on-menu', 'on-live']) $(v).hidden = v !== id; };
@@ -34,6 +37,28 @@ export function createOnline(x) {
     setDot('ok');
   }
 
+  // Yalnız görünüş effektləri: oyunun nəticəsinə, gedişlərə və saata təsir etmir.
+  const FX = new Set(['flip', 'disco', 'boo']);
+  let fxBusy = false;
+  function runFx(name) {
+    if (typeof name !== 'string' || !FX.has(name)) return;
+    if (name === 'boo') { x.toast('👻 BOO!'); return; }
+    if (fxBusy) return;
+    fxBusy = true;
+    const root = document.documentElement;
+    const finish = (ms, fn) => setTimeout(() => { fn(); fxBusy = false; }, ms);
+    if (name === 'flip') {
+      const base = o.color === 'b';
+      x.setFlip(!base);
+      finish(5000, () => x.setFlip(base));
+    } else if (name === 'disco') {
+      const themes = ['green', 'brown', 'blue', 'dark', 'neon', 'classic'];
+      let i = 0;
+      const iv = setInterval(() => { root.dataset.theme = themes[i++ % themes.length]; }, 400);
+      finish(5000, () => { clearInterval(iv); root.dataset.theme = x.S.get().theme; });
+    }
+  }
+
   function onMsg(d) {
     const over = x.isOver();
     switch (d.t) {
@@ -47,6 +72,7 @@ export function createOnline(x) {
           && (d.res == null || (RESULTS.has(d.res.reason) && [null, 'w', 'b'].includes(d.res.winner)));
         if (!ok) return;
         myKey = d.key;
+        saveSes();
         tc = { min: d.min, inc: d.inc };
         o.color = d.color;
         mode(true);
@@ -86,6 +112,9 @@ export function createOnline(x) {
         theirR = true;
         if (mineR) startRematch(); else x.toast(t('rematchAsk'));
         return;
+      case 'fx':
+        runFx(d.name);
+        return;
       case 'chat':
         if (typeof d.text !== 'string' || !d.text.trim() || d.text.length > 300) return;
         addChat(d.text.trim(), false);
@@ -115,7 +144,7 @@ export function createOnline(x) {
       x.toast(t('oppLeft'));
       $('on-rejoin').hidden = role !== 'guest';
     },
-    onError: type => x.toast(t(type === 'peer-unavailable' ? 'notFound' : 'netError')),
+    onError: type => { if (type === 'peer-unavailable') clearSes(); x.toast(t(type === 'peer-unavailable' ? 'notFound' : 'netError')); },
     onMsg
   };
 
@@ -136,6 +165,7 @@ export function createOnline(x) {
     teardown();
     myKey = key;
     lastCode = code;
+    saveSes();
     mk('guest').join(code, key);
     status('connecting', null);
     showCode(code);
@@ -145,6 +175,7 @@ export function createOnline(x) {
 
   $('on-create').addEventListener('click', async () => {
     teardown();
+    clearSes();
     const n = mk('host');
     n.gid = rid();
     o.color = Math.random() < 0.5 ? 'w' : 'b';
@@ -190,6 +221,7 @@ export function createOnline(x) {
   $('on-leave').addEventListener('click', () => {
     teardown();
     lastCode = null;
+    clearSes();
     x.setFlip(false);
     x.newGame();
     $('on-status').textContent = '';
@@ -205,6 +237,7 @@ export function createOnline(x) {
   o.sendMove = m => net?.send('move', { from: m.from, to: m.to, promo: m.promotion,
     ply: x.game.history().length, ms: Math.round(x.clock.ms[m.color]) });
   o.sendEnd = reason => net?.send('end', { reason });
+  o.fx = name => { if (net?.open && FX.has(name)) net.send('fx', { name }); };
   o.offerDraw = () => {
     const ply = x.game.history().length;
     if (!net?.open || x.isOver() || offerPly === ply) return;
@@ -218,5 +251,9 @@ export function createOnline(x) {
     net.send('rematch');
     if (theirR) startRematch(); else x.toast(t('waitRematch'));
   };
+  try {
+    const s = JSON.parse(sessionStorage.getItem(SKEY) || 'null');
+    if (s && /^\d{6}$/.test(s.code)) { lastCode = s.code; myKey = typeof s.key === 'string' ? s.key : null; join(s.code); }
+  } catch { /* yaddaş yoxdur */ }
   return o;
 }
