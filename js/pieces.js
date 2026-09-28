@@ -1,36 +1,20 @@
-// AZCHESS Premium SVG pieces — original vector set, chess-app style.
-const SHAPES = {
-  p:'M22.5 7.2c-3.1 0-5.5 2.5-5.5 5.5 0 2.1 1.2 3.9 3 4.8-4.2 2.2-6.1 7.3-6.5 13.2h18c-.4-5.9-2.3-11-6.5-13.2 1.8-.9 3-2.7 3-4.8 0-3-2.4-5.5-5.5-5.5zM10.5 34h24v4.2h-24z',
-  r:'M11 38.2v-3.7l3.1-3.1V19l-3.1-3.1V7.8h5.2v3.4h3.3V7.8h5.9v3.4h3.3V7.8H34v8.1L30.9 19v12.4l3.1 3.1v3.7z',
-  n:'M11.2 36.8c.1-6.1 2.2-10.9 6.8-15-3.1.2-6.2 1.2-8.8-.2v-3.1c2.5-4.3 5.5-7.7 9-10.2l1.4-4.2 4.6 4.4c7.1 1.2 11.5 7.2 11.1 15.5-.2 4.5-1.3 8.8-3 12.8zM10 37h27v2.5H10z',
-  b:'M22.5 5.2c-2 0-3.7 1.7-3.7 3.7 0 1.5.9 2.8 2.2 3.4-4.6 3.2-7 7.4-7 11.3 0 2.9 1.3 5.2 3.2 6.9-2 .9-4 1.5-6.2 1.5v3h23v-3c-2.2 0-4.2-.6-6.2-1.5 1.9-1.7 3.2-4 3.2-6.9 0-3.9-2.4-8.1-7-11.3 1.3-.6 2.2-1.9 2.2-3.4 0-2-1.7-3.7-3.7-3.7zM11 36h23v3H11z',
-  q:'M8.5 11.4c0-1.5 1.2-2.7 2.7-2.7s2.7 1.2 2.7 2.7c0 .5-.1.9-.4 1.3l3.4-3.1c0-1.5 1.2-2.7 2.7-2.7s2.7 1.2 2.7 2.7c0 .3 0 .6-.1.9l.3-.1.3.1c-.1-.3-.1-.6-.1-.9 0-1.5 1.2-2.7 2.7-2.7s2.7 1.2 2.7 2.7l3.4 3.1c-.3-.4-.4-.8-.4-1.3 0-1.5 1.2-2.7 2.7-2.7s2.7 1.2 2.7 2.7c0 .7-.3 1.4-.8 1.9l-4.1 15.2h-16L9.3 13.3c-.5-.5-.8-1.2-.8-1.9zM12 30.5h21v3.2H12zM10.5 34.2h24v4.4h-24z',
-  k:'M20.8 3h3.4v3.2h3.2v3.2h-3.2v4c6.6 1.1 10.9 5.5 10.9 11.2 0 2.8-1.2 5.2-3.1 7.1 1.1.5 2.3.9 3.7 1.1v3H10.3v-3c1.4-.2 2.6-.6 3.7-1.1-1.9-1.9-3.1-4.3-3.1-7.1 0-5.7 4.3-10.1 10.9-11.2v-4h-3.2V6.2h3.2zM11 34h23v4.2H11z'
-};
+// AZCHESS SVG pieces: original flat Staunton-style vector set (drawn for this project).
+const SHAPES = {"p": "M22.5 8.2C25.4 8.2 27.5 10.3 27.5 13.1C27.5 14.9 26.6 16.4 25.2 17.3L26.6 18L26.6 20L25.3 20.5C27.6 22.6 29.2 26.6 29.8 31.6L31.4 31.6L32.4 33.4L33 33.4L33 38L22.5 38L12 38L12 33.4L12.6 33.4L13.6 31.6L15.2 31.6C15.8 26.6 17.4 22.6 19.7 20.5L18.4 20L18.4 18L19.8 17.3C18.4 16.4 17.5 14.9 17.5 13.1C17.5 10.3 19.6 8.2 22.5 8.2Z", "r": "M22.5 8.2L25.3 8.2L25.3 10.6L27.3 10.6L27.3 8.2L31.2 8.2L31.2 13.4L28.6 15.6L28.6 27.6L30.4 29.2L30.4 31.6L31.8 31.6L32.6 33.4L33.2 33.4L33.2 38L22.5 38L11.8 38L11.8 33.4L12.4 33.4L13.2 31.6L14.6 31.6L14.6 29.2L16.4 27.6L16.4 15.6L13.8 13.4L13.8 8.2L17.7 8.2L17.7 10.6L19.7 10.6L19.7 8.2L22.5 8.2Z", "b": "M22.5 4.6C23.6 4.6 24.4 5.4 24.4 6.5C24.4 7.3 24 7.9 23.4 8.3C26.4 10 28.6 13 28.6 16.4C28.6 18.4 27.6 19.9 26.2 20.9L27.6 21.6L27.6 23.4L26 23.9C27.2 26.6 28.6 29.4 29.6 31.6L31.4 31.6L32.4 33.4L33 33.4L33 38L22.5 38L12 38L12 33.4L12.6 33.4L13.6 31.6L15.4 31.6C16.4 29.4 17.8 26.6 19 23.9L17.4 23.4L17.4 21.6L18.8 20.9C17.4 19.9 16.4 18.4 16.4 16.4C16.4 13 18.6 10 21.6 8.3C21 7.9 20.6 7.3 20.6 6.5C20.6 5.4 21.4 4.6 22.5 4.6Z", "q": "M22.5 9L24.5 14.8L27.9 10L29.4 15.8L33 11.6L32 18.6L30.2 21.4L30.2 22.6L28.4 23.2C29 26 30 29 30.8 31.6L32.2 31.6L33 33.4L33.4 33.4L33.4 38L22.5 38L11.6 38L11.6 33.4L12 33.4L12.8 31.6L14.2 31.6C15 29 16 26 16.6 23.2L14.8 22.6L14.8 21.4L13 18.6L12 11.6L15.6 15.8L17.1 10L20.5 14.8L22.5 9Z", "k": "M22.5 3.4L23.8 3.4L23.8 5L25.5 5L25.5 6.5L23.8 6.5L23.8 8.2C26.8 7.6 29.4 8.8 30.4 11.2C31.4 13.8 30.8 16.4 29.2 18.4L30.4 19.4L30.4 22.4L28.6 23.2C29.4 26 30.4 29 31 31.6L32.4 31.6L33.2 33.4L33.6 33.4L33.6 38L22.5 38L11.4 38L11.4 33.4L11.8 33.4L12.6 31.6L14 31.6C14.6 29 15.6 26 16.4 23.2L14.6 22.4L14.6 19.4L15.8 18.4C14.2 16.4 13.6 13.8 14.6 11.2C15.6 8.8 18.2 7.6 21.2 8.2L21.2 6.5L19.5 6.5L19.5 5L21.2 5L21.2 3.4L22.5 3.4Z", "n": "M11.6 22.6C10.6 21.4 11.4 19.6 13.6 17.2C15.8 14.8 16.6 11.8 18.6 9.4L19.4 6.6L22.2 8.2C29.6 9.4 35.4 16.6 35.2 26.4C35.2 30 34.4 32.2 33.6 33.4L34.6 33.4L34.6 38.0L10.6 38.0L10.6 33.4L14.6 33.4C14.4 29.4 16.2 26.4 19.4 24.2C18.0 24.4 16.6 25.4 15.2 26.4C14.4 26.8 13.4 26.2 13.6 25.2L13.6 23.4C12.8 23.6 12.2 23.4 11.6 22.6Z"};
+const DETAILS = {"p": "M12.4 33.4H32.6", "r": "M16.4 15.6H28.6M15.4 29.2H29.6M11.8 33.4H33.2", "b": "M20.4 11.8L25 16.2M17.4 21.6H27.6M12 33.4H33", "q": "M15.8 22.6H29.2M11.6 33.4H33.4", "k": "M14.6 19.4H30.4M11.4 33.4H33.6", "n": "M10.6 33.4H34.6M26.4 13.2C30.6 16.2 32.4 21.4 31.6 28"};
+const EXTRA = {"q": [[22.5, 8.2, 1.6], [27.9, 9.2, 1.5], [17.1, 9.2, 1.5], [33.0, 10.8, 1.5], [12.0, 10.8, 1.5]]};
+// [fill, stroke, detail line]
 export const PIECE_SETS = {
-  classic:{w:['#fffdf8','#b9a98e'],b:['#34363c','#090a0d'],sw:1.05},
-  modern:{w:['#f7fafc','#9aa6b7'],b:['#3a414c','#11151b'],sw:1},
-  tournament:{w:['#fff','#777'],b:['#171717','#000'],sw:1.2}
+  classic:{w:['#ffffff','#3f3f3f','#3f3f3f'],b:['#4a4a4a','#1b1b1b','#bdbdbd'],sw:1.2},
+  modern:{w:['#f4f7fb','#4b5666','#4b5666'],b:['#3b4657','#10151d','#a8b4c6'],sw:1.15},
+  tournament:{w:['#ffffff','#111111','#111111'],b:['#222222','#000000','#cfcfcf'],sw:1.5}
 };
 const cache=new Map();
 export function pieceSVG(set,color,type){
   const key=`${set}|${color}|${type}`;
   if(cache.has(key)) return cache.get(key);
-  const c=PIECE_SETS[set]||PIECE_SETS.classic, [a,b]=c[color];
-  const id=`az-${set}-${color}-${type}`.replace(/[^a-z0-9-]/gi,'');
-  const dark=color==='b';
-  const eye=type==='n'?`<circle cx="28" cy="14.8" r="1.15" fill="${dark?'#d9dce2':'#3b3b3b'}" opacity=".9"/>`:'';
-  const svg=`<svg viewBox="0 0 45 45" aria-hidden="true" focusable="false" class="piece-svg">
-    <defs>
-      <linearGradient id="${id}-g" x1="0" y1="0" x2=".8" y2="1"><stop offset="0" stop-color="${a}"/><stop offset=".48" stop-color="${dark?'#555962':'#fff'}"/><stop offset="1" stop-color="${b}"/></linearGradient>
-      <linearGradient id="${id}-edge" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${dark?'#767b84':'#fff'}"/><stop offset="1" stop-color="${b}"/></linearGradient>
-      <filter id="${id}-sh" x="-35%" y="-35%" width="170%" height="180%"><feDropShadow dx="0" dy="1.8" stdDeviation="1.2" flood-color="#000" flood-opacity="${dark?.62:.34}"/></filter>
-    </defs>
-    <g filter="url(#${id}-sh)">
-      <path d="${SHAPES[type]}" fill="url(#${id}-g)" stroke="url(#${id}-edge)" stroke-width="${c.sw}" stroke-linejoin="round"/>
-      <path d="${SHAPES[type]}" fill="none" stroke="#fff" stroke-opacity="${dark?.10:.32}" stroke-width=".55" transform="translate(-.15,-.2)"/>
-      ${eye}
-    </g>
-  </svg>`;
+  const c=PIECE_SETS[set]||PIECE_SETS.classic, [fill,stroke,line]=c[color];
+  const balls=(EXTRA[type]||[]).map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${c.sw}"/>`).join('');
+  const eye=type==='n'?`<circle cx="20.6" cy="14.6" r="1.1" fill="${color==='b'?'#e5e5e5':stroke}"/>`:'';
+  const svg=`<svg viewBox="0 0 45 45" aria-hidden="true" focusable="false" class="piece-svg">${balls}<path d="${SHAPES[type]}" fill="${fill}" stroke="${stroke}" stroke-width="${c.sw}" stroke-linejoin="round"/><path d="${DETAILS[type]}" fill="none" stroke="${line}" stroke-width=".9" stroke-linecap="round" stroke-linejoin="round"/>${eye}</svg>`;
   cache.set(key,svg); return svg;
 }
