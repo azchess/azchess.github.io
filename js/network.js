@@ -1,5 +1,5 @@
 const PREFIX = 'azchess-';
-const TYPES = new Set(['join', 'hello', 'move', 'draw', 'drawAccept', 'drawDecline', 'end', 'rematch', 'chat']);
+const TYPES = new Set(['join', 'hello', 'move', 'draw', 'drawAccept', 'drawDecline', 'end', 'rematch', 'chat', 'fx']);
 const newCode = () => String(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000));
 
 /**
